@@ -7,6 +7,8 @@ import 'package:mini_fiverr/screens/notifications/notifications_screen.dart';
 import 'package:mini_fiverr/screens/payment/wallet_screen.dart';
 import 'package:mini_fiverr/screens/profile/edit_profile_screen.dart';
 import 'package:mini_fiverr/screens/profile/my_professional_cards.dart';
+import 'package:mini_fiverr/screens/dashboard/client_dashboard.dart';
+import 'package:mini_fiverr/screens/dashboard/professional_dashboard.dart';
 import 'package:mini_fiverr/screens/splash_screen.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -97,7 +99,7 @@ class ProfileScreen extends StatelessWidget {
             ],
             _buildSettingsGroup('Account Settings', [
               _buildSettingsTile(Icons.person_outline, 'Edit Profile', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()))),
-              _buildSettingsTile(Icons.swap_horiz, 'Switch Role (${user.role == 'client' ? 'Pro' : 'Client'})', () {}),
+              _buildSettingsTile(Icons.swap_horiz, 'Switch Role (${user.role == 'client' ? 'Pro' : 'Client'})', () => _showSwitchRoleDialog(context, user)),
               _buildSettingsTile(Icons.security_outlined, 'Security Questions', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SecurityQuestionsScreen(isMandatory: false)))),
               _buildSettingsTile(Icons.notifications_outlined, 'Notification Preferences', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
               if (isPro)
@@ -166,6 +168,35 @@ class ProfileScreen extends StatelessWidget {
       title: Text(title, style: const TextStyle(fontSize: 14)),
       trailing: const Icon(Icons.chevron_right, size: 18),
       onTap: onTap,
+    );
+  }
+
+  void _showSwitchRoleDialog(BuildContext context, dynamic user) {
+    final currentRole = user.role as String;
+    final newRole = currentRole == 'client' ? 'professional' : 'client';
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Switch Role'),
+        content: Text('Switch from ${currentRole == 'client' ? 'Client' : 'Professional'} to ${newRole == 'client' ? 'Client' : 'Professional'}?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              await Provider.of<UserProvider>(context, listen: false).updateRole(user.uid, newRole);
+              if (!context.mounted) return;
+              Navigator.pop(dialogContext);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => newRole == 'client' ? const ClientDashboard() : const ProfessionalDashboard()),
+                (route) => false,
+              );
+            },
+            child: const Text('Switch Now'),
+          ),
+        ],
+      ),
     );
   }
 

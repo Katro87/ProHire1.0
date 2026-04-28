@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:math';
+
 import 'package:mini_fiverr/utils/theme.dart';
 
 class ChatRoomScreen extends StatefulWidget {
@@ -47,6 +49,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final chatId = _chatId();
     final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
 
+    // Check if this is the first message
+    final msgsSnapshot = await chatRef.collection('messages').limit(1).get();
+    final isFirstMessage = msgsSnapshot.docs.isEmpty;
+
     await chatRef.set({
       'participants': [currentUser.uid, widget.receiverId ?? widget.userName]..sort(),
       'lastMessage': text,
@@ -61,6 +67,37 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
 
     _msgController.clear();
+
+    // Auto-reply for first message
+    if (isFirstMessage) {
+      Future.delayed(const Duration(seconds: 2), () async {
+        final autoReplies = [
+          "👋 Hi! Thanks for reaching out. I'm currently busy but will get back to you shortly.",
+          "Thanks for your message! I'll review your request and respond soon.",
+          "Hey there! I'm in the middle of something but I'll reply in a bit.",
+          "Got your message! Let me look into this and I'll get back to you.",
+          "Hi! I'm available but currently working. I'll respond in detail shortly.",
+        ];
+
+        final randomReply = autoReplies[Random().nextInt(autoReplies.length)];
+
+        final participants = [currentUser.uid, widget.receiverId ?? widget.userName]..sort();
+        final professionalId = participants.firstWhere((id) => id != currentUser.uid, orElse: () => widget.receiverId ?? currentUser.uid);
+
+        await chatRef.collection('messages').add({
+          'senderId': professionalId,
+          'text': randomReply,
+          'timestamp': FieldValue.serverTimestamp(),
+          'isAutoReply': true,
+        });
+
+        await chatRef.update({
+          'lastMessage': randomReply,
+          'lastMessageTime': FieldValue.serverTimestamp(),
+          'autoReplySent': true,
+        });
+      });
+    }
   }
 
   @override

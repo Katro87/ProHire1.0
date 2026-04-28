@@ -31,6 +31,10 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateRole(String uid, String newRole) async {
+    await updateUser(uid, {'role': newRole});
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();

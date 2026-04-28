@@ -21,6 +21,9 @@ class UserModel {
   final double? hourlyRate;
   final String? bio;
   final bool? isAvailable;
+  final double? rating;
+  final int? reviewCount;
+  final int? completedProjects;
   
   // Security Questions
   final List<Map<String, String>>? securityQuestions;
@@ -44,6 +47,9 @@ class UserModel {
     this.hourlyRate,
     this.bio,
     this.isAvailable,
+    this.rating,
+    this.reviewCount,
+    this.completedProjects,
     this.securityQuestions,
   });
 
@@ -74,6 +80,9 @@ class UserModel {
       hourlyRate: (map['hourlyRate'] ?? 0.0).toDouble(),
       bio: map['bio'],
       isAvailable: map['isAvailable'],
+        rating: (map['rating'] ?? 0.0).toDouble(),
+        reviewCount: (map['reviewCount'] ?? 0) is int ? map['reviewCount'] : (map['reviewCount'] ?? 0).toInt(),
+        completedProjects: (map['completedProjects'] ?? 0) is int ? map['completedProjects'] : (map['completedProjects'] ?? 0).toInt(),
       securityQuestions: map['securityQuestions'] != null 
         ? List<Map<String, String>>.from(
             (map['securityQuestions'] as List).map((i) => Map<String, String>.from(i))
@@ -115,6 +124,9 @@ class UserModel {
     if (securityQuestions != null) {
       map['securityQuestions'] = securityQuestions;
     }
+    if (rating != null) map['rating'] = rating;
+    if (reviewCount != null) map['reviewCount'] = reviewCount;
+    if (completedProjects != null) map['completedProjects'] = completedProjects;
 
     return map;
   }

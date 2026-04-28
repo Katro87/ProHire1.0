@@ -17,40 +17,24 @@ class SecurityQuestionsScreen extends StatefulWidget {
 }
 
 class _SecurityQuestionsScreenState extends State<SecurityQuestionsScreen> {
-  final List<String> _questions = [
-    "What is your mother's maiden name?",
-    "What was the name of your first pet?",
-    "What was the name of your elementary school?",
-    "What is your favorite movie?",
-    "What is your favorite book?",
-    "What city were you born in?",
-    "What is your middle name?",
-    "What was your childhood nickname?",
-    "What was the make of your first car?",
-    "What is your favorite food?",
-    "What was your dream job as a child?",
-    "What is your father's middle name?",
-    "What was your high school mascot?",
-    "What street did you grow up on?",
-    "What was your grades in intermediate/inter?",
-  ];
-
-  final List<String?> _selectedQuestions = List.filled(5, null);
+  // Use free-text questions (custom questions only)
+  final List<TextEditingController> _questionControllers = List.generate(5, (_) => TextEditingController());
   final List<TextEditingController> _answerControllers = List.generate(5, (_) => TextEditingController());
 
   void _handleSave() async {
-    // Basic validation
+    // Basic validation: ensure all questions and answers filled
     for (int i = 0; i < 5; i++) {
-      if (_selectedQuestions[i] == null || _answerControllers[i].text.trim().isEmpty) {
-        Fluttertoast.showToast(msg: "⚠️ Please fill all questions and answers", backgroundColor: AppColors.error);
+      if (_questionControllers[i].text.trim().isEmpty || _answerControllers[i].text.trim().isEmpty) {
+        Fluttertoast.showToast(msg: "⚠️ Please fill all 5 questions and answers", backgroundColor: AppColors.error);
         return;
       }
     }
 
-    // Check for duplicates
-    final uniqueQuestions = _selectedQuestions.toSet();
+    // Check for duplicate questions
+    final questions = _questionControllers.map((c) => c.text.trim().toLowerCase()).toList();
+    final uniqueQuestions = questions.toSet();
     if (uniqueQuestions.length < 5) {
-      Fluttertoast.showToast(msg: "⚠️ Please select unique questions", backgroundColor: AppColors.error);
+      Fluttertoast.showToast(msg: "⚠️ Please use unique questions", backgroundColor: AppColors.error);
       return;
     }
 
@@ -60,7 +44,7 @@ class _SecurityQuestionsScreenState extends State<SecurityQuestionsScreen> {
     List<Map<String, String>> securityData = [];
     for (int i = 0; i < 5; i++) {
       securityData.add({
-        'question': _selectedQuestions[i]!,
+        'question': _questionControllers[i].text.trim(),
         'answer': _answerControllers[i].text.trim().toLowerCase(),
       });
     }
@@ -72,7 +56,11 @@ class _SecurityQuestionsScreenState extends State<SecurityQuestionsScreen> {
       });
       Fluttertoast.showToast(msg: "✅ Security questions saved!", backgroundColor: AppColors.success);
       if (!mounted) return;
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProfileSetupStep1()));
+      if (widget.isMandatory) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProfileSetupStep1()));
+      } else {
+        Navigator.pop(context);
+      }
     } catch (e) {
       final errorMsg = ErrorHandler.getHumanReadableError(e);
       if (!mounted) return;
@@ -166,21 +154,23 @@ class _SecurityQuestionsScreenState extends State<SecurityQuestionsScreen> {
       children: [
         Text('Question ${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedQuestions[index],
-          items: _questions.map((q) => DropdownMenuItem(value: q, child: Text(q, overflow: TextOverflow.ellipsis))).toList(),
-          onChanged: (v) => setState(() => _selectedQuestions[index] = v),
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+        TextFormField(
+          controller: _questionControllers[index],
+          decoration: InputDecoration(
+            hintText: 'Write your question...',
+            border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+            fillColor: AppColors.surfaceLight,
+            filled: true,
           ),
-          isExpanded: true,
         ),
         const SizedBox(height: 8),
         TextFormField(
           controller: _answerControllers[index],
           decoration: InputDecoration(
-            hintText: 'Answer ${index + 1}',
+            hintText: 'Write your answer...',
             border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+            fillColor: AppColors.surfaceLight,
+            filled: true,
           ),
         ),
       ],

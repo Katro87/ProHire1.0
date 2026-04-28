@@ -6,12 +6,17 @@ import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/user_provider.dart';
 import 'package:mini_fiverr/screens/splash_screen.dart';
 import 'package:mini_fiverr/utils/theme.dart';
+import 'package:mini_fiverr/services/firestore_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: firebaseOptions,
   );
+  // Seed demo professionals if needed (safe no-op if already seeded)
+  try {
+    await FirestoreService().seedDemoProfessionals();
+  } catch (_) {}
   runApp(const MyApp());
 }
 
@@ -39,9 +44,9 @@ class MyApp extends StatelessWidget {
           ),
           fontFamily: 'Inter',
           textTheme: const TextTheme(
-            headlineLarge: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold),
-            headlineMedium: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.bold),
-            titleLarge: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600),
+            headlineLarge: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+            headlineMedium: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+            titleLarge: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
           ),
           appBarTheme: const AppBarTheme(
             backgroundColor: AppColors.surface,

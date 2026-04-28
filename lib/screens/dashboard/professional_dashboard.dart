@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/user_provider.dart';
 import 'package:mini_fiverr/screens/profile/profile_screen.dart';
+import 'package:mini_fiverr/screens/profile/create_professional_card.dart';
 import 'package:mini_fiverr/widgets/custom_app_bar.dart';
-import 'package:mini_fiverr/widgets/bottom_nav_bar.dart';
+import 'package:mini_fiverr/widgets/professional_nav_bar.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/screens/jobs/activity_screen.dart';
 import 'package:mini_fiverr/screens/chat/chat_list_screen.dart';
@@ -36,11 +37,35 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         notificationCount: 5,
       ) : null,
       body: _buildBody(),
-      bottomNavigationBar: CustomBottomNavBar(
+      bottomNavigationBar: ProfessionalNavBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        isProfessional: true,
       ),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [AppColors.secondaryGradientStart, AppColors.secondaryGradientEnd],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.secondary.withValues(alpha: 0.25),
+              blurRadius: 25,
+              spreadRadius: 3,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateProfessionalCardScreen()));
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: const Icon(Icons.add_rounded, size: 36, color: Colors.white),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -65,7 +90,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
           const Text('My Active Job Cards', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 12),
           SizedBox(
-            height: 120,
+            height: 132,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
@@ -136,10 +161,9 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey[200]!)),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           CircleAvatar(backgroundColor: color.withValues(alpha: 0.1), child: Icon(Icons.work, color: color, size: 20)),
-          const SizedBox(height: 12),
           Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
           Text(subtitle, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
         ],

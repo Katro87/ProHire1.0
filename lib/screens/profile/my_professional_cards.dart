@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mini_fiverr/screens/profile/create_professional_card.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 
 class MyProfessionalCardsScreen extends StatelessWidget {
@@ -23,7 +24,9 @@ class MyProfessionalCardsScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateProfessionalCardScreen()));
+        },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),

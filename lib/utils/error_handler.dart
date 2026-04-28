@@ -1,5 +1,29 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 class ErrorHandler {
   static String getHumanReadableError(dynamic error) {
+    if (error is FirebaseAuthException) {
+      switch (error.code) {
+        case 'email-already-in-use':
+          return 'This email is already registered. Please login instead.';
+        case 'invalid-email':
+          return 'Please enter a valid email address.';
+        case 'weak-password':
+          return 'Password is too weak. Use at least 8 characters with uppercase and numbers.';
+        case 'user-not-found':
+          return 'No account found with this email. Please sign up first.';
+        case 'wrong-password':
+        case 'invalid-credential':
+          return 'Incorrect email or password. Please try again.';
+        case 'user-disabled':
+          return 'This account has been disabled. Contact support.';
+        case 'network-request-failed':
+          return 'Network error. Please check your internet connection.';
+        case 'too-many-requests':
+          return 'Too many attempts. Please wait and try again later.';
+      }
+    }
+
     final errorString = error.toString().toLowerCase();
 
     if (errorString.contains('email-already-in-use') || errorString.contains('useralreadyexist')) {
@@ -14,8 +38,8 @@ class ErrorHandler {
     if (errorString.contains('user-not-found')) {
       return 'No account found with this email. Please sign up first.';
     }
-    if (errorString.contains('wrong-password')) {
-      return 'Incorrect password. Please try again.';
+    if (errorString.contains('wrong-password') || errorString.contains('invalid-credential')) {
+      return 'Incorrect email or password. Please try again.';
     }
     if (errorString.contains('network-request-failed')) {
       return 'Network error. Please check your internet connection.';
