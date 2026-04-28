@@ -1,0 +1,13 @@
+{
+  "name": "Mini-Fiverr Flutter App",
+  "description": "A complete Fiverr clone built with Flutter and Firebase, featuring role-based dashboards, real-time chat, and a professional hiring system.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "authentication",
+    "real-time-chat",
+    "professional-services"
+  ]
+}
