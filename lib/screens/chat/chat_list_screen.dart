@@ -31,7 +31,17 @@ class ChatListScreen extends StatelessWidget {
     ];
 
     return ListTile(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatRoomScreen(userName: names[index], userPic: 'https://i.pravatar.cc/100?u=$index'))),
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatRoomScreen(
+            userName: names[index],
+            userPic: 'https://i.pravatar.cc/100?u=$index',
+            receiverId: 'demo_user_$index',
+            chatId: 'demo_chat_$index',
+          ),
+        ),
+      ),
       leading: CircleAvatar(radius: 28, backgroundImage: NetworkImage('https://i.pravatar.cc/100?u=$index')),
       title: Text(names[index], style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(msgs[index], maxLines: 1, overflow: TextOverflow.ellipsis),

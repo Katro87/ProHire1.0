@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/user_provider.dart';
 import 'package:mini_fiverr/screens/onboarding/profile_setup_step3.dart';
+import 'package:mini_fiverr/utils/error_handler.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -72,7 +73,7 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
         if (!mounted) return;
         Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileSetupStep3()));
       } catch (e) {
-        Fluttertoast.showToast(msg: "❌ Failed: ${e.toString()}", backgroundColor: AppColors.error);
+        Fluttertoast.showToast(msg: ErrorHandler.getHumanReadableError(e), backgroundColor: AppColors.error);
       }
     }
   }

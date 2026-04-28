@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/user_provider.dart';
 import 'package:mini_fiverr/screens/splash_screen.dart';
+import 'package:mini_fiverr/utils/error_handler.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -22,7 +23,7 @@ class ProfileSetupStep4 extends StatelessWidget {
         (route) => false,
       );
     } catch (e) {
-      Fluttertoast.showToast(msg: "❌ Error: ${e.toString()}", backgroundColor: AppColors.error);
+      Fluttertoast.showToast(msg: ErrorHandler.getHumanReadableError(e), backgroundColor: AppColors.error);
     }
   }
 

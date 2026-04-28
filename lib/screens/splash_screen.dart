@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/user_provider.dart';
 import 'package:mini_fiverr/screens/auth/login_screen.dart';
+import 'package:mini_fiverr/screens/auth/security_questions_screen.dart';
 import 'package:mini_fiverr/screens/dashboard/client_dashboard.dart';
 import 'package:mini_fiverr/screens/dashboard/professional_dashboard.dart';
 import 'package:mini_fiverr/screens/onboarding/profile_setup_step1.dart';
@@ -36,7 +37,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
       final user = userProvider.userModel;
       if (user != null) {
-        if (!user.profileCompleted) {
+        if (!user.hasSecurityQuestions) {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SecurityQuestionsScreen(isMandatory: true)));
+        } else if (!user.profileCompleted) {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProfileSetupStep1()));
         } else if (user.role == 'client') {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ClientDashboard()));

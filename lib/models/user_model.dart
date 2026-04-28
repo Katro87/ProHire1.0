@@ -8,8 +8,11 @@ class UserModel {
   final bool profileCompleted;
   final bool hasSecurityQuestions;
   final String profilePicUrl;
-  final DateTime createdAt;
   final double walletBalance;
+  final DateTime createdAt;
+  final String? companyName;
+  final String? lookingFor;
+  final String? industry;
   
   // Professional specific fields
   final String? professionalTitle;
@@ -30,8 +33,11 @@ class UserModel {
     this.profileCompleted = false,
     this.hasSecurityQuestions = false,
     this.profilePicUrl = '',
-    required this.createdAt,
     this.walletBalance = 0.0,
+    required this.createdAt,
+    this.companyName,
+    this.lookingFor,
+    this.industry,
     this.professionalTitle,
     this.skills,
     this.experience,
@@ -42,6 +48,13 @@ class UserModel {
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
+    final createdAtValue = map['createdAt'];
+    final createdAt = createdAtValue is Timestamp
+        ? createdAtValue.toDate()
+        : createdAtValue is DateTime
+            ? createdAtValue
+            : DateTime.now();
+
     return UserModel(
       uid: map['uid'] ?? '',
       name: map['name'] ?? '',
@@ -50,8 +63,11 @@ class UserModel {
       profileCompleted: map['profileCompleted'] ?? false,
       hasSecurityQuestions: map['hasSecurityQuestions'] ?? false,
       profilePicUrl: map['profilePicUrl'] ?? '',
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
       walletBalance: (map['walletBalance'] ?? 0.0).toDouble(),
+      createdAt: createdAt,
+      companyName: map['companyName'],
+      lookingFor: map['lookingFor'],
+      industry: map['industry'],
       professionalTitle: map['professionalTitle'],
       skills: map['skills'] != null ? List<String>.from(map['skills']) : null,
       experience: map['experience'],
@@ -66,8 +82,10 @@ class UserModel {
     );
   }
 
+  String? get title => professionalTitle;
+
   Map<String, dynamic> toMap() {
-    return {
+    final map = {
       'uid': uid,
       'name': name,
       'email': email,
@@ -83,7 +101,21 @@ class UserModel {
       'hourlyRate': hourlyRate,
       'bio': bio,
       'isAvailable': isAvailable,
-      'securityQuestions': securityQuestions,
     };
+
+    if (companyName != null) {
+      map['companyName'] = companyName;
+    }
+    if (lookingFor != null) {
+      map['lookingFor'] = lookingFor;
+    }
+    if (industry != null) {
+      map['industry'] = industry;
+    }
+    if (securityQuestions != null) {
+      map['securityQuestions'] = securityQuestions;
+    }
+
+    return map;
   }
 }

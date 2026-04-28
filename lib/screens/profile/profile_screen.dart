@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/user_provider.dart';
+import 'package:mini_fiverr/screens/auth/security_questions_screen.dart';
+import 'package:mini_fiverr/screens/notifications/notifications_screen.dart';
+import 'package:mini_fiverr/screens/payment/wallet_screen.dart';
+import 'package:mini_fiverr/screens/profile/edit_profile_screen.dart';
+import 'package:mini_fiverr/screens/profile/my_professional_cards.dart';
 import 'package:mini_fiverr/screens/splash_screen.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -43,8 +48,8 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profile'),
         actions: [
-          IconButton(icon: const Icon(Icons.settings_outlined), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.notifications_outlined), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
+          IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()))),
         ],
       ),
       body: SingleChildScrollView(
@@ -57,7 +62,7 @@ class ProfileScreen extends StatelessWidget {
                   CircleAvatar(radius: 60, backgroundImage: NetworkImage(user.profilePicUrl)),
                   const SizedBox(height: 16),
                   Text(user.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  Text(isPro ? (user.professionalTitle ?? 'Digital Creator') : 'Business Account', style: const TextStyle(color: AppColors.textSecondary)),
+                  Text(isPro ? (user.professionalTitle ?? 'Digital Creator') : (user.companyName ?? 'Business Account'), style: const TextStyle(color: AppColors.textSecondary)),
                   if (isPro) ...[
                     const SizedBox(height: 8),
                     Row(
@@ -91,13 +96,15 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 32),
             ],
             _buildSettingsGroup('Account Settings', [
-              _buildSettingsTile(Icons.person_outline, 'Edit Profile', () {}),
+              _buildSettingsTile(Icons.person_outline, 'Edit Profile', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()))),
               _buildSettingsTile(Icons.swap_horiz, 'Switch Role (${user.role == 'client' ? 'Pro' : 'Client'})', () {}),
-              _buildSettingsTile(Icons.security_outlined, 'Security Questions', () {}),
-              _buildSettingsTile(Icons.notifications_outlined, 'Notification Preferences', () {}),
+              _buildSettingsTile(Icons.security_outlined, 'Security Questions', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SecurityQuestionsScreen(isMandatory: false)))),
+              _buildSettingsTile(Icons.notifications_outlined, 'Notification Preferences', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
+              if (isPro)
+                _buildSettingsTile(Icons.credit_card, 'My Professional Cards', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyProfessionalCardsScreen()))),
             ]),
             const SizedBox(height: 24),
-            _buildActionCard('Wallet Balance', '\$250.00', Icons.account_balance_wallet, AppColors.primary),
+            _buildActionCard('Wallet Balance', '\$250.00', Icons.account_balance_wallet, AppColors.primary, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen()))),
             const SizedBox(height: 48),
             SizedBox(
               width: double.infinity,
@@ -162,18 +169,22 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Row(
-        children: [
-          Icon(icon, color: color),
-          const SizedBox(width: 16),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const Spacer(),
-          Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 18)),
-        ],
+  Widget _buildActionCard(String title, String value, IconData icon, Color color, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+        child: Row(
+          children: [
+            Icon(icon, color: color),
+            const SizedBox(width: 16),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+            const Spacer(),
+            Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 18)),
+          ],
+        ),
       ),
     );
   }

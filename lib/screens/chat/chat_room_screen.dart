@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String userName;
   final String userPic;
+  final String? receiverId;
+  final String? chatId;
 
-  const ChatRoomScreen({super.key, required this.userName, required this.userPic});
+  const ChatRoomScreen({super.key, required this.userName, required this.userPic, this.receiverId, this.chatId});
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();
@@ -13,28 +17,59 @@ class ChatRoomScreen extends StatefulWidget {
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final _msgController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [
-    {'text': 'Hello! Is this still available?', 'isMe': false, 'time': '10:00 AM'},
-    {'text': 'Yes, it is! When can you start?', 'isMe': true, 'time': '10:02 AM'},
-    {'text': 'I can start today if you provide the assets.', 'isMe': false, 'time': '10:05 AM'},
-    {'text': 'Great, I will send them over shortly.', 'isMe': true, 'time': '10:06 AM'},
+  static const List<String> quickReplies = [
+    '👋 Hi! How can I help you?',
+    '👍 Sure, I can do that.',
+    '⏰ I\'ll get back to you soon.',
+    '📅 I\'m available tomorrow.',
+    '💰 Let\'s discuss the budget.',
+    '📝 Please share more details.',
+    '✅ I\'ve started working on it.',
+    '🔍 Let me review this.',
+    '📎 Can you send the files?',
+    '🙏 Thank you for your patience.',
   ];
 
-  void _sendMessage() {
-    if (_msgController.text.trim().isNotEmpty) {
-      setState(() {
-        _messages.add({
-          'text': _msgController.text.trim(),
-          'isMe': true,
-          'time': '10:07 AM',
-        });
-        _msgController.clear();
-      });
-    }
+  String _chatId() {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
+    final otherId = widget.receiverId ?? widget.userName;
+    final participants = [currentUid, otherId]..sort();
+    return widget.chatId ?? participants.join('_');
+  }
+
+  Future<void> _sendMessage() async {
+    final text = _msgController.text.trim();
+    if (text.isEmpty) return;
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    final chatId = _chatId();
+    final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+
+    await chatRef.set({
+      'participants': [currentUser.uid, widget.receiverId ?? widget.userName]..sort(),
+      'lastMessage': text,
+      'lastMessageTime': FieldValue.serverTimestamp(),
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    await chatRef.collection('messages').add({
+      'senderId': currentUser.uid,
+      'text': text,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    _msgController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      return const Scaffold(body: Center(child: Text('Please log in to continue.')));
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -59,18 +94,69 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ),
       body: Column(
         children: [
+          SizedBox(
+            height: 54,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              children: quickReplies.map((reply) => _buildQuickReplyChip(reply)).toList(),
+            ),
+          ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[index];
-                return _buildChatBubble(msg['text'], msg['isMe'], msg['time']);
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('chats')
+                  .doc(_chatId())
+                  .collection('messages')
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text('No messages yet. Say hello! 👋'));
+                }
+
+                final messages = snapshot.data!.docs;
+                return ListView.builder(
+                  reverse: true,
+                  padding: const EdgeInsets.all(20),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final message = messages[index].data() as Map<String, dynamic>;
+                    final isMe = message['senderId'] == currentUser.uid;
+                    final timestamp = message['timestamp'] is Timestamp ? (message['timestamp'] as Timestamp).toDate() : DateTime.now();
+                    return _buildChatBubble(message['text'] ?? '', isMe, _formatTime(timestamp));
+                  },
+                );
               },
             ),
           ),
           _buildInputBar(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildQuickReplyChip(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: () => setState(() => _msgController.text = text),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+          ),
+          child: Text(
+            text.length > 25 ? '${text.substring(0, 25)}...' : text,
+            style: const TextStyle(fontSize: 12, color: AppColors.primary),
+          ),
+        ),
       ),
     );
   }
@@ -128,5 +214,12 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         ],
       ),
     );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
   }
 }

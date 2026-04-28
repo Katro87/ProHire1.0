@@ -7,6 +7,8 @@ import 'package:mini_fiverr/widgets/bottom_nav_bar.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/screens/jobs/activity_screen.dart';
 import 'package:mini_fiverr/screens/chat/chat_list_screen.dart';
+import 'package:mini_fiverr/screens/notifications/notifications_screen.dart';
+import 'package:mini_fiverr/screens/payment/wallet_screen.dart';
 
 class ProfessionalDashboard extends StatefulWidget {
   const ProfessionalDashboard({super.key});
@@ -29,14 +31,15 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         title: 'My Dashboard',
         profilePicUrl: user.profilePicUrl,
         onProfileTap: () => setState(() => _currentIndex = 3),
-        onNotificationsTap: () {},
-        onWalletTap: () {},
+        onNotificationsTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+        onWalletTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen())),
         notificationCount: 5,
       ) : null,
       body: _buildBody(),
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
+        isProfessional: true,
       ),
     );
   }

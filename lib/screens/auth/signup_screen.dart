@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/screens/auth/security_questions_screen.dart';
+import 'package:mini_fiverr/utils/error_handler.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/utils/validators.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -33,9 +34,19 @@ class _SignupScreenState extends State<SignupScreen> {
         );
         Fluttertoast.showToast(msg: "✅ Account created successfully!", backgroundColor: AppColors.success);
         if (!mounted) return;
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SecurityQuestionsScreen()));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SecurityQuestionsScreen(isMandatory: true)));
       } catch (e) {
-        Fluttertoast.showToast(msg: "❌ Signup failed: ${e.toString()}", backgroundColor: AppColors.error);
+        final errorMsg = ErrorHandler.getHumanReadableError(e);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
     }
   }

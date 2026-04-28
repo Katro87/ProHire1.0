@@ -4,6 +4,7 @@ import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/screens/auth/signup_screen.dart';
 import 'package:mini_fiverr/screens/auth/forgot_password_screen.dart';
 import 'package:mini_fiverr/screens/splash_screen.dart';
+import 'package:mini_fiverr/utils/error_handler.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/utils/validators.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -32,11 +33,17 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SplashScreen()));
       } catch (e) {
-        String errorMsg = "Login failed. Please check your credentials.";
-        if (e.toString().contains('user-not-found')) errorMsg = "No account found with this email.";
-        if (e.toString().contains('wrong-password')) errorMsg = "Incorrect password.";
-        
-        Fluttertoast.showToast(msg: "❌ $errorMsg", backgroundColor: AppColors.error);
+        final errorMsg = ErrorHandler.getHumanReadableError(e);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg),
+            backgroundColor: Colors.red.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
     }
   }

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/user_provider.dart';
 import 'package:mini_fiverr/screens/onboarding/profile_setup_step2.dart';
+import 'package:mini_fiverr/utils/error_handler.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mini_fiverr/widgets/loading_overlay.dart';
@@ -51,7 +52,7 @@ class _ProfileSetupStep1State extends State<ProfileSetupStep1> {
       Fluttertoast.showToast(msg: "✅ Profile photo updated!", backgroundColor: AppColors.success);
       Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileSetupStep2()));
     } catch (e) {
-      Fluttertoast.showToast(msg: "❌ Failed: ${e.toString()}", backgroundColor: AppColors.error);
+      Fluttertoast.showToast(msg: ErrorHandler.getHumanReadableError(e), backgroundColor: AppColors.error);
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
