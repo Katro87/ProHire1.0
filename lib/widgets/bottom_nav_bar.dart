@@ -58,7 +58,7 @@ class CustomBottomNavBar extends StatelessWidget {
               BottomNavigationBarItem(
                 icon: Tooltip(message: 'Your Active Jobs', child: Icon(Icons.work_outline)),
                 activeIcon: Icon(Icons.work, size: 30),
-                label: 'My Jobs',
+                label: 'My Active Hires',
               ),
               BottomNavigationBarItem(
                 icon: Tooltip(message: 'Chat with Professionals', child: Icon(Icons.chat_bubble_outline)),

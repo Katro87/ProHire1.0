@@ -24,6 +24,7 @@ class UserModel {
   final double? rating;
   final int? reviewCount;
   final int? completedProjects;
+  final List<String>? favoriteProfessionalIds;
   
   // Security Questions
   final List<Map<String, String>>? securityQuestions;
@@ -50,6 +51,7 @@ class UserModel {
     this.rating,
     this.reviewCount,
     this.completedProjects,
+    this.favoriteProfessionalIds,
     this.securityQuestions,
   });
 
@@ -83,6 +85,9 @@ class UserModel {
         rating: (map['rating'] ?? 0.0).toDouble(),
         reviewCount: (map['reviewCount'] ?? 0) is int ? map['reviewCount'] : (map['reviewCount'] ?? 0).toInt(),
         completedProjects: (map['completedProjects'] ?? 0) is int ? map['completedProjects'] : (map['completedProjects'] ?? 0).toInt(),
+      favoriteProfessionalIds: map['favoriteProfessionalIds'] != null
+        ? List<String>.from(map['favoriteProfessionalIds'])
+        : null,
       securityQuestions: map['securityQuestions'] != null 
         ? List<Map<String, String>>.from(
             (map['securityQuestions'] as List).map((i) => Map<String, String>.from(i))
@@ -127,6 +132,7 @@ class UserModel {
     if (rating != null) map['rating'] = rating;
     if (reviewCount != null) map['reviewCount'] = reviewCount;
     if (completedProjects != null) map['completedProjects'] = completedProjects;
+    if (favoriteProfessionalIds != null) map['favoriteProfessionalIds'] = favoriteProfessionalIds;
 
     return map;
   }

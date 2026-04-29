@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/user_provider.dart';
 import 'package:mini_fiverr/screens/splash_screen.dart';
+import 'package:mini_fiverr/utils/avatar_utils.dart';
 import 'package:mini_fiverr/utils/error_handler.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -43,10 +44,7 @@ class ProfileSetupStep4 extends StatelessWidget {
             const Text('Step 4 of 4: Review', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 32),
             Center(
-              child: CircleAvatar(
-                radius: 60,
-                backgroundImage: NetworkImage(user.profilePicUrl),
-              ),
+              child: AvatarUtils.buildAvatar(name: user.name, imageUrl: user.profilePicUrl, radius: 60),
             ),
             const SizedBox(height: 24),
             _buildReviewCard(context, user),

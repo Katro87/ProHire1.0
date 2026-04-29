@@ -44,7 +44,7 @@ class ClientNavBar extends StatelessWidget {
               ),
               NavItem(
                 icon: Icons.work_history_rounded,
-                label: 'My Jobs',
+                label: 'My Active Hires',
                 isActive: currentIndex == 1,
                 onTap: () => onTap(1),
                 tooltip: 'Your Active Jobs',

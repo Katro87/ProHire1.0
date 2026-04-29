@@ -37,9 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       final user = userProvider.userModel;
       if (user != null) {
-        if (!user.hasSecurityQuestions) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SecurityQuestionsScreen(isMandatory: true)));
-        } else if (!user.profileCompleted) {
+        if (!user.profileCompleted) {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProfileSetupStep1()));
         } else if (user.role == 'client') {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ClientDashboard()));
@@ -69,13 +67,13 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.rocket_launch, size: 80, color: Colors.white)
+            const Icon(Icons.work_outline, size: 80, color: Colors.white)
                 .animate()
                 .fade(duration: 800.ms)
                 .scale(delay: 200.ms),
             const SizedBox(height: 20),
             Text(
-              'MINI FIVERR',
+              'PROHIRE',
               style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                     color: Colors.white,
                     letterSpacing: 4,

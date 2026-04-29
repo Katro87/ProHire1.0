@@ -62,11 +62,11 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const SizedBox(height: 40),
                 const Center(
-                  child: Icon(Icons.rocket_launch, size: 60, color: AppColors.primary),
+                  child: Icon(Icons.work_outline, size: 60, color: AppColors.primary),
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'Welcome Back',
+                  'Welcome to ProHire',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     color: AppColors.textPrimary,
                   ),
@@ -113,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ElevatedButton(
                   onPressed: _handleLogin,
                   child: context.watch<AuthProvider>().isLoading 
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
                     : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(height: 24),

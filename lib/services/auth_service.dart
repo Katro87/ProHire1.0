@@ -13,6 +13,8 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      final securityQuestions = _firestoreService.generateSecurityQuestions();
       
       // Create user document in Firestore
       await _firestoreService.createUser(result.user!.uid, {
@@ -21,10 +23,10 @@ class AuthService {
         'email': email.trim().toLowerCase(),
         'role': role,
         'profileCompleted': false,
-        'hasSecurityQuestions': false,
         'profilePicUrl': '',
         'createdAt': DateTime.now(),
         'walletBalance': 0.0,
+        'securityQuestions': securityQuestions,
       });
       
       return result;

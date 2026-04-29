@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:mini_fiverr/utils/avatar_utils.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final String displayName;
   final String profilePicUrl;
   final VoidCallback onProfileTap;
   final VoidCallback? onNotificationsTap;
@@ -12,6 +14,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CustomAppBar({
     super.key,
     required this.title,
+    this.displayName = '',
     required this.profilePicUrl,
     required this.onProfileTap,
     this.onNotificationsTap,
@@ -26,10 +29,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         padding: const EdgeInsets.only(left: 12.0),
         child: GestureDetector(
           onTap: onProfileTap,
-          child: CircleAvatar(
-            radius: 18,
-            backgroundImage: NetworkImage(profilePicUrl),
-          ),
+          child: AvatarUtils.buildAvatar(name: displayName.isEmpty ? title : displayName, imageUrl: profilePicUrl, radius: 18),
         ),
       ),
       title: Text(title),

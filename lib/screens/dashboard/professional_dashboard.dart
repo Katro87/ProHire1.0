@@ -29,7 +29,8 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: _currentIndex == 0 ? CustomAppBar(
-        title: 'My Dashboard',
+        title: 'My Jobs',
+        displayName: user.name,
         profilePicUrl: user.profilePicUrl,
         onProfileTap: () => setState(() => _currentIndex = 3),
         onNotificationsTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
@@ -87,7 +88,7 @@ class _ProfessionalDashboardState extends State<ProfessionalDashboard> {
         children: [
           _buildBalanceCard(),
           const SizedBox(height: 24),
-          const Text('My Active Job Cards', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const Text('My Jobs', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 12),
           SizedBox(
             height: 132,

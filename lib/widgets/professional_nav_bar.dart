@@ -33,14 +33,14 @@ class ProfessionalNavBar extends StatelessWidget {
             children: [
               NavItem(
                 icon: Icons.dashboard_rounded,
-                label: 'Dashboard',
+                label: 'My Jobs',
                 isActive: currentIndex == 0,
                 onTap: () => onTap(0),
                 tooltip: 'Your Dashboard',
               ),
               NavItem(
                 icon: Icons.assignment_rounded,
-                label: 'Requests',
+                label: 'Proposals',
                 isActive: currentIndex == 1,
                 onTap: () => onTap(1),
                 tooltip: 'Job Requests',

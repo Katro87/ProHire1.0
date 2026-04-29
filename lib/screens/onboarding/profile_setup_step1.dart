@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -43,14 +44,14 @@ class _ProfileSetupStep1State extends State<ProfileSetupStep1> {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final navigator = Navigator.of(context);
 
-    // Simulate upload delay
-    await Future.delayed(const Duration(seconds: 2));
-
     if (!mounted) return;
 
     try {
+      final storageRef = FirebaseStorage.instance.ref().child('profile_pictures').child(uid).child('avatar.jpg');
+      await storageRef.putData(_imageBytes!);
+      final imageUrl = await storageRef.getDownloadURL();
       await userProvider.updateUser(uid, {
-        'profilePicUrl': 'https://i.pravatar.cc/300?u=$uid', // Simulator URL
+        'profilePicUrl': imageUrl,
       });
       Fluttertoast.showToast(msg: "✅ Profile photo updated!", backgroundColor: AppColors.success);
       navigator.push(MaterialPageRoute(builder: (_) => const ProfileSetupStep2()));

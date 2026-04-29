@@ -3,16 +3,21 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:mini_fiverr/models/user_model.dart';
+import 'package:mini_fiverr/utils/avatar_utils.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 
 class ProfessionalCard extends StatelessWidget {
   final UserModel professional;
   final VoidCallback onTap;
+  final bool isFavorite;
+  final VoidCallback? onFavoriteTap;
 
   const ProfessionalCard({
     super.key,
     required this.professional,
     required this.onTap,
+    this.isFavorite = false,
+    this.onFavoriteTap,
   });
 
   @override
@@ -89,11 +94,11 @@ class ProfessionalCard extends StatelessWidget {
                               ),
                             ],
                           ),
-                            child: CircleAvatar(
-                            radius: 40,
-                            backgroundImage: NetworkImage(professional.profilePicUrl),
-                            backgroundColor: AppColors.primary.withOpacity(0.08),
-                          ),
+                            child: AvatarUtils.buildAvatar(
+                              name: professional.name,
+                              imageUrl: professional.profilePicUrl,
+                              radius: 40,
+                            ),
                         ),
 
                         const SizedBox(width: 16),
@@ -156,7 +161,7 @@ class ProfessionalCard extends StatelessWidget {
                         boxShadow: [AppShadows.glowShadow],
                       ),
                       child: Text(
-                        '💵 \$${(professional.hourlyRate ?? 0).toStringAsFixed(0)}/hr',
+                        '\$${(professional.hourlyRate ?? 0).toStringAsFixed(0)}/hr',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -221,7 +226,7 @@ class ProfessionalCard extends StatelessWidget {
                           shadowColor: AppColors.primary.withOpacity(0.5),
                         ),
                         child: const Text(
-                          '🚀  VIEW PROFILE',
+                          'VIEW PROFILE',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -231,6 +236,22 @@ class ProfessionalCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                        if (onFavoriteTap != null)
+                          Align(
+                            alignment: Alignment.topRight,
+                            child: GestureDetector(
+                              onTap: onFavoriteTap,
+                              child: AnimatedScale(
+                                scale: isFavorite ? 1.08 : 1.0,
+                                duration: 180.ms,
+                                child: Icon(
+                                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                                  color: isFavorite ? Colors.redAccent : AppColors.textSecondary,
+                                  size: 28,
+                                ),
+                              ),
+                            ),
+                          ),
                   ],
                 ),
               ),

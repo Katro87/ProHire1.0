@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mini_fiverr/utils/avatar_utils.dart';
 import 'package:mini_fiverr/screens/chat/chat_room_screen.dart';
 import 'package:mini_fiverr/utils/error_handler.dart';
 import 'package:mini_fiverr/utils/theme.dart';
@@ -80,7 +81,7 @@ class _ActivityScreenState extends State<ActivityScreen> with SingleTickerProvid
         MaterialPageRoute(
           builder: (_) => const ChatRoomScreen(
             userName: 'Alice Johnson',
-            userPic: 'https://i.pravatar.cc/100?u=0',
+            userPic: '',
             receiverId: 'demo_client_0',
             chatId: 'job_chat_0',
           ),
@@ -128,7 +129,7 @@ class _ActivityScreenState extends State<ActivityScreen> with SingleTickerProvid
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(radius: 12, backgroundImage: NetworkImage('https://i.pravatar.cc/50')),
+                    AvatarUtils.buildAvatar(name: 'Alice Johnson', imageUrl: '', radius: 12),
                     const SizedBox(width: 8),
                     const Text('Alice Johnson', style: TextStyle(fontWeight: FontWeight.bold)),
                   ],
@@ -165,7 +166,7 @@ class _ActivityScreenState extends State<ActivityScreen> with SingleTickerProvid
                   )
                 else if (status == 'active' || isAccepted)
                   ElevatedButton(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatRoomScreen(userName: 'Alice Johnson', userPic: 'https://i.pravatar.cc/100?u=0', receiverId: 'demo_client_0', chatId: 'job_chat_0'))),
+                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatRoomScreen(userName: 'Alice Johnson', userPic: '', receiverId: 'demo_client_0', chatId: 'job_chat_0'))),
                     style: ElevatedButton.styleFrom(minimumSize: const Size(120, 36), backgroundColor: AppColors.secondary),
                     child: const Text('Go to Chat'),
                   )

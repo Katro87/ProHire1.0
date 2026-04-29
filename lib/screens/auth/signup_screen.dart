@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/screens/auth/security_questions_screen.dart';
+import 'package:mini_fiverr/screens/splash_screen.dart';
 import 'package:mini_fiverr/utils/error_handler.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/utils/validators.dart';
@@ -34,7 +35,7 @@ class _SignupScreenState extends State<SignupScreen> {
         );
         Fluttertoast.showToast(msg: "✅ Account created successfully!", backgroundColor: AppColors.success);
         if (!mounted) return;
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SecurityQuestionsScreen(isMandatory: true)));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SplashScreen()));
       } catch (e) {
         final errorMsg = ErrorHandler.getHumanReadableError(e);
         if (!mounted) return;
@@ -69,7 +70,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
-                const Text('Join the world\'s largest marketplace for digital services'),
+                const Text('Welcome to ProHire'),
                 const SizedBox(height: 32),
                 
                 // Role Selection

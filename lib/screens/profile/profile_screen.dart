@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:mini_fiverr/utils/avatar_utils.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/user_provider.dart';
 import 'package:mini_fiverr/screens/auth/security_questions_screen.dart';
@@ -7,6 +8,7 @@ import 'package:mini_fiverr/screens/notifications/notifications_screen.dart';
 import 'package:mini_fiverr/screens/payment/wallet_screen.dart';
 import 'package:mini_fiverr/screens/profile/edit_profile_screen.dart';
 import 'package:mini_fiverr/screens/profile/my_professional_cards.dart';
+import 'package:mini_fiverr/screens/profile/my_favorites_screen.dart';
 import 'package:mini_fiverr/screens/dashboard/client_dashboard.dart';
 import 'package:mini_fiverr/screens/dashboard/professional_dashboard.dart';
 import 'package:mini_fiverr/screens/splash_screen.dart';
@@ -61,7 +63,7 @@ class ProfileScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  CircleAvatar(radius: 60, backgroundImage: NetworkImage(user.profilePicUrl)),
+                  AvatarUtils.buildAvatar(name: user.name, imageUrl: user.profilePicUrl, radius: 60),
                   const SizedBox(height: 16),
                   Text(user.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   Text(isPro ? (user.professionalTitle ?? 'Digital Creator') : (user.companyName ?? 'Business Account'), style: const TextStyle(color: AppColors.textSecondary)),
@@ -72,7 +74,7 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         const Icon(Icons.star, color: Colors.amber, size: 18),
                         const Text(' 4.8 • ', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const Text('💵 ', style: TextStyle(fontSize: 16)),
+                        const Icon(Icons.payments_outlined, size: 16, color: AppColors.primary),
                         Text('\$${user.hourlyRate}/hr', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
                       ],
                     ),
@@ -102,6 +104,8 @@ class ProfileScreen extends StatelessWidget {
               _buildSettingsTile(Icons.swap_horiz, 'Switch Role (${user.role == 'client' ? 'Pro' : 'Client'})', () => _showSwitchRoleDialog(context, user)),
               _buildSettingsTile(Icons.security_outlined, 'Security Questions', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SecurityQuestionsScreen(isMandatory: false)))),
               _buildSettingsTile(Icons.notifications_outlined, 'Notification Preferences', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()))),
+              if (!isPro)
+                _buildSettingsTile(Icons.favorite_border, 'My Favorites', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyFavoritesScreen()))),
               if (isPro)
                 _buildSettingsTile(Icons.credit_card, 'My Professional Cards', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyProfessionalCardsScreen()))),
             ]),

@@ -1,14 +1,30 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:mini_fiverr/models/user_model.dart';
+import 'package:mini_fiverr/utils/security_questions.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  List<Map<String, String>> generateSecurityQuestions() {
+    return SecurityQuestions.generatePresetQuestions();
+  }
+
   Future<void> createUser(String uid, Map<String, dynamic> data) async {
+    final securityQuestions = data['securityQuestions'] ?? generateSecurityQuestions();
     await _db.collection('users').doc(uid).set({
       ...data,
+      'securityQuestions': securityQuestions,
+      'hasSecurityQuestions': true,
       'createdAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  Future<UserModel?> getUserByEmail(String email) async {
+    final query = await _db.collection('users').where('email', isEqualTo: email.trim().toLowerCase()).limit(1).get();
+    if (query.docs.isEmpty) {
+      return null;
+    }
+    return UserModel.fromMap(query.docs.first.data());
   }
 
   Future<UserModel?> getUser(String uid) async {
@@ -48,7 +64,7 @@ class FirestoreService {
           'role': 'professional',
           'profileCompleted': true,
           'hasSecurityQuestions': true,
-          'profilePicUrl': 'https://randomuser.me/api/portraits/women/44.jpg',
+          'profilePicUrl': '',
           'title': '🏆 Senior UI/UX Designer',
           'professionalTitle': 'Senior UI/UX Designer',
           'skills': ['Figma', 'Adobe XD', 'Prototyping', 'User Research', 'Design Systems', 'Mobile Design', 'Web Design'],
@@ -62,6 +78,7 @@ class FirestoreService {
           'completedProjects': 187,
           'portfolioLinks': ['https://dribbble.com/alexm', 'https://behance.net/alexm'],
           'walletBalance': 12500.0,
+          'securityQuestions': SecurityQuestions.generatePresetQuestions(),
           'createdAt': Timestamp.now(),
         },
         {
@@ -71,7 +88,7 @@ class FirestoreService {
           'role': 'professional',
           'profileCompleted': true,
           'hasSecurityQuestions': true,
-          'profilePicUrl': 'https://randomuser.me/api/portraits/men/32.jpg',
+          'profilePicUrl': '',
           'title': '⚡ Full Stack Developer',
           'professionalTitle': 'Full Stack Developer',
           'skills': ['Flutter', 'React', 'Node.js', 'Firebase', 'AWS', 'TypeScript', 'PostgreSQL', 'Docker'],
@@ -85,6 +102,7 @@ class FirestoreService {
           'completedProjects': 134,
           'portfolioLinks': ['https://github.com/marcusdev', 'https://marcusdev.com'],
           'walletBalance': 18750.0,
+          'securityQuestions': SecurityQuestions.generatePresetQuestions(),
           'createdAt': Timestamp.now(),
         },
         {
@@ -94,7 +112,7 @@ class FirestoreService {
           'role': 'professional',
           'profileCompleted': true,
           'hasSecurityQuestions': true,
-          'profilePicUrl': 'https://randomuser.me/api/portraits/women/68.jpg',
+          'profilePicUrl': '',
           'title': '✍️ Content Strategist & SEO Expert',
           'professionalTitle': 'Content Strategist & SEO Expert',
           'skills': ['Content Writing', 'SEO', 'Copywriting', 'Blog Writing', 'Technical Writing', 'Email Marketing', 'Social Media'],
@@ -108,6 +126,7 @@ class FirestoreService {
           'completedProjects': 98,
           'portfolioLinks': ['https://sarahwrites.com', 'https://medium.com/@sarahchen'],
           'walletBalance': 8750.0,
+          'securityQuestions': SecurityQuestions.generatePresetQuestions(),
           'createdAt': Timestamp.now(),
         },
         {
@@ -117,7 +136,7 @@ class FirestoreService {
           'role': 'professional',
           'profileCompleted': true,
           'hasSecurityQuestions': true,
-          'profilePicUrl': 'https://randomuser.me/api/portraits/men/75.jpg',
+          'profilePicUrl': '',
           'title': '🎨 Brand Identity Designer',
           'professionalTitle': 'Brand Identity Designer',
           'skills': ['Logo Design', 'Brand Strategy', 'Illustration', 'Typography', 'Packaging Design', 'Adobe Illustrator', 'Photoshop'],
@@ -131,6 +150,7 @@ class FirestoreService {
           'completedProjects': 230,
           'portfolioLinks': ['https://davidpark.design', 'https://instagram.com/davidparkdesign'],
           'walletBalance': 22300.0,
+          'securityQuestions': SecurityQuestions.generatePresetQuestions(),
           'createdAt': Timestamp.now(),
         },
         {
@@ -140,7 +160,7 @@ class FirestoreService {
           'role': 'professional',
           'profileCompleted': true,
           'hasSecurityQuestions': true,
-          'profilePicUrl': 'https://randomuser.me/api/portraits/women/22.jpg',
+          'profilePicUrl': '',
           'title': '📱 Mobile App Developer',
           'professionalTitle': 'Mobile App Developer',
           'skills': ['Flutter', 'Swift', 'Kotlin', 'Firebase', 'UI/UX', 'API Integration', 'App Store Deployment'],
@@ -154,6 +174,7 @@ class FirestoreService {
           'completedProjects': 89,
           'portfolioLinks': ['https://emilyapps.dev', 'https://github.com/emilydev'],
           'walletBalance': 15600.0,
+          'securityQuestions': SecurityQuestions.generatePresetQuestions(),
           'createdAt': Timestamp.now(),
         },
       ];

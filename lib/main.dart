@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: MaterialApp(
-        title: 'Mini Fiverr',
+        title: 'ProHire',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,

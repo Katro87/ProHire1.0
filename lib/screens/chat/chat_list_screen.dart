@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mini_fiverr/utils/avatar_utils.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/screens/chat/chat_room_screen.dart';
 
@@ -36,13 +37,13 @@ class ChatListScreen extends StatelessWidget {
         MaterialPageRoute(
           builder: (_) => ChatRoomScreen(
             userName: names[index],
-            userPic: 'https://i.pravatar.cc/100?u=$index',
+            userPic: '',
             receiverId: 'demo_user_$index',
             chatId: 'demo_chat_$index',
           ),
         ),
       ),
-      leading: CircleAvatar(radius: 28, backgroundImage: NetworkImage('https://i.pravatar.cc/100?u=$index')),
+      leading: AvatarUtils.buildAvatar(name: names[index], imageUrl: '', radius: 28),
       title: Text(names[index], style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(msgs[index], maxLines: 1, overflow: TextOverflow.ellipsis),
       trailing: Column(

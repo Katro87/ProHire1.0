@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
 
+import 'package:mini_fiverr/utils/avatar_utils.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 
 class ChatRoomScreen extends StatefulWidget {
@@ -37,6 +38,28 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     final otherId = widget.receiverId ?? widget.userName;
     final participants = [currentUid, otherId]..sort();
     return widget.chatId ?? participants.join('_');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _markConversationRead());
+  }
+
+  Future<void> _markConversationRead() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    final query = await FirebaseFirestore.instance.collection('chats').doc(_chatId()).collection('messages').get();
+
+    final batch = FirebaseFirestore.instance.batch();
+    for (final doc in query.docs) {
+      final data = doc.data();
+      if (data['senderId'] != currentUser.uid) {
+        batch.update(doc.reference, {'isRead': true, 'readAt': FieldValue.serverTimestamp()});
+      }
+    }
+    await batch.commit();
   }
 
   Future<void> _sendMessage() async {
@@ -114,7 +137,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           children: [
             Stack(
               children: [
-                CircleAvatar(radius: 16, backgroundImage: NetworkImage(widget.userPic)),
+                AvatarUtils.buildAvatar(name: widget.userName, imageUrl: widget.userPic, radius: 16),
                 Positioned(bottom: 0, right: 0, child: Container(width: 10, height: 10, decoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)))),
               ],
             ),
@@ -181,7 +204,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
-        onTap: () => setState(() => _msgController.text = text),
+        onTap: () {
+          setState(() => _msgController.text = text);
+          _sendMessage();
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
@@ -239,6 +265,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(24)),
               child: TextField(
                 controller: _msgController,
+                onSubmitted: (_) => _sendMessage(),
                 decoration: const InputDecoration(hintText: 'Type a message...', border: InputBorder.none),
               ),
             ),
