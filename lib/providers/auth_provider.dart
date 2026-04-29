@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:mini_fiverr/services/auth_service.dart';
 
-class AuthProvider with ChangeNotifier {
-  final AuthService _authService = AuthService();
+class AppAuthProvider with ChangeNotifier {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
   bool _isLoading = false;
+  String? _error;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
+  String? get error => _error;
   bool get isAuthenticated => _user != null;
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  AuthProvider() {
-    _authService.user.listen((user) {
+  AppAuthProvider() {
+    _auth.authStateChanges().listen((User? user) {
       _user = user;
       notifyListeners();
     });
@@ -20,28 +22,39 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> login(String email, String password) async {
     _setLoading(true);
+    _error = null;
     try {
-      await _authService.login(email, password);
-    } catch (e) {
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      _error = e.message;
       rethrow;
     } finally {
       _setLoading(false);
     }
   }
 
-  Future<void> signUp(String email, String password, String name, String role) async {
+  Future<UserCredential> signUp(String email, String password) async {
     _setLoading(true);
+    _error = null;
     try {
-      await _authService.signUp(email, password, name, role);
-    } catch (e) {
+      return await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      _error = e.message;
       rethrow;
     } finally {
       _setLoading(false);
     }
+  }
+
+  Future<void> resetPassword(String email) {
+    return _auth.sendPasswordResetEmail(email: email);
   }
 
   Future<void> logout() async {
-    await _authService.logout();
+    await _auth.signOut();
   }
 
   void _setLoading(bool value) {

@@ -37,7 +37,7 @@ class _SecurityQuestionsScreenState extends State<SecurityQuestionsScreen> {
     }
 
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<AppAuthProvider>(context, listen: false);
 
     List<Map<String, String>> securityData = [];
     for (int i = 0; i < 2; i++) {

@@ -1,29 +1,50 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class MessageModel {
-  final String senderId;
-  final String text;
-  final DateTime timestamp;
-
-  MessageModel({
+  const MessageModel({
+    required this.id,
     required this.senderId,
-    required this.text,
+    required this.content,
     required this.timestamp,
+    required this.isSentByMe,
+    this.isRead = false,
   });
 
-  factory MessageModel.fromMap(Map<String, dynamic> map) {
+  final String id;
+  final String senderId;
+  final String content;
+  final DateTime timestamp;
+  final bool isSentByMe;
+  final bool isRead;
+
+  MessageModel copyWith({bool? isRead}) {
     return MessageModel(
-      senderId: map['senderId'] ?? '',
-      text: map['text'] ?? '',
-      timestamp: (map['timestamp'] as Timestamp).toDate(),
+      id: id,
+      senderId: senderId,
+      content: content,
+      timestamp: timestamp,
+      isSentByMe: isSentByMe,
+      isRead: isRead ?? this.isRead,
     );
   }
 
-  Map<String, dynamic> toMap() {
-    return {
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
       'senderId': senderId,
-      'text': text,
-      'timestamp': Timestamp.fromDate(timestamp),
+      'content': content,
+      'timestamp': timestamp.toIso8601String(),
+      'isSentByMe': isSentByMe,
+      'isRead': isRead,
     };
+  }
+
+  factory MessageModel.fromJson(Map<String, dynamic> map) {
+    return MessageModel(
+      id: map['id'] as String,
+      senderId: map['senderId'] as String,
+      content: map['content'] as String,
+      timestamp: DateTime.parse(map['timestamp'] as String),
+      isSentByMe: (map['isSentByMe'] ?? false) as bool,
+      isRead: (map['isRead'] ?? false) as bool,
+    );
   }
 }

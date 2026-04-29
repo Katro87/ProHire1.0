@@ -173,7 +173,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
-    final authProvider = context.read<app_auth.AuthProvider>();
+    final authProvider = context.read<app_auth.AppAuthProvider>();
     final userProvider = context.read<UserProvider>();
     final currentUser = authProvider.user;
     if (currentUser == null) {

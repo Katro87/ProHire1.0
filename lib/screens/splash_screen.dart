@@ -1,87 +1,74 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:mini_fiverr/providers/auth_provider.dart';
-import 'package:mini_fiverr/providers/user_provider.dart';
-import 'package:mini_fiverr/screens/auth/login_screen.dart';
-import 'package:mini_fiverr/screens/auth/security_questions_screen.dart';
-import 'package:mini_fiverr/screens/dashboard/client_dashboard.dart';
-import 'package:mini_fiverr/screens/dashboard/professional_dashboard.dart';
-import 'package:mini_fiverr/screens/onboarding/profile_setup_step1.dart';
-import 'package:mini_fiverr/utils/theme.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:mini_fiverr/utils/theme.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({super.key, this.hold = false});
+
+  final bool hold;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _showSubtitle = false;
+
   @override
   void initState() {
     super.initState();
-    _checkAuth();
-  }
-
-  void _checkAuth() async {
-    await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return;
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-    if (authProvider.isAuthenticated) {
-      await userProvider.fetchUser(authProvider.user!.uid);
-      if (!mounted) return;
-
-      final user = userProvider.userModel;
-      if (user != null) {
-        if (!user.profileCompleted) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProfileSetupStep1()));
-        } else if (user.role == 'client') {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ClientDashboard()));
-        } else {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ProfessionalDashboard()));
-        }
-      } else {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+    unawaited(Future<void>.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        setState(() => _showSubtitle = true);
       }
-    } else {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-    }
+    }));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
+            colors: <Color>[Color(0xFF08080D), Color(0xFF101024)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppColors.primary, AppColors.primaryDark],
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.work_outline, size: 80, color: Colors.white)
-                .animate()
-                .fade(duration: 800.ms)
-                .scale(delay: 200.ms),
-            const SizedBox(height: 20),
-            Text(
-              'PROHIRE',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    color: Colors.white,
-                    letterSpacing: 4,
-                  ),
-            ).animate().fade(delay: 500.ms).slideY(begin: 0.5),
-            const SizedBox(height: 50),
-            const CircularProgressIndicator(color: Colors.white),
-          ],
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                'ProHire',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontSize: 44,
+                      foreground: Paint()
+                        ..shader = const LinearGradient(
+                          colors: <Color>[AppColors.primary, AppColors.secondary],
+                        ).createShader(const Rect.fromLTWH(0, 0, 220, 70)),
+                    ),
+              ).animate(onPlay: (AnimationController c) => c.repeat(reverse: true)).fadeIn(duration: 450.ms).scaleXY(begin: 0.96, end: 1.02, duration: 1400.ms),
+              const SizedBox(height: 10),
+              AnimatedOpacity(
+                opacity: _showSubtitle ? 1 : 0,
+                duration: const Duration(milliseconds: 350),
+                child: Text(
+                  'Connect. Create. Earn.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 16,
+                      ),
+                ),
+              ),
+              if (widget.hold) ...<Widget>[
+                const SizedBox(height: 30),
+                const CircularProgressIndicator(strokeWidth: 2.2),
+              ],
+            ],
+          ),
         ),
       ),
     );

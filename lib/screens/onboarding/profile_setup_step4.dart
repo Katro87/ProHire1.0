@@ -12,7 +12,7 @@ class ProfileSetupStep4 extends StatelessWidget {
   const ProfileSetupStep4({super.key});
 
   void _handleComplete(BuildContext context) async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<AppAuthProvider>(context, listen: false);
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     
     try {

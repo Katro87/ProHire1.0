@@ -43,7 +43,7 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
   void _handleNext() async {
     if (_formKey.currentState!.validate()) {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final authProvider = Provider.of<AppAuthProvider>(context, listen: false);
       final role = userProvider.userModel!.role;
 
       Map<String, dynamic> data = {};

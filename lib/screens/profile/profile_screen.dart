@@ -28,7 +28,7 @@ class ProfileScreen extends StatelessWidget {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
-              await Provider.of<AuthProvider>(context, listen: false).logout();
+              await Provider.of<AppAuthProvider>(context, listen: false).logout();
               if (!context.mounted) return;
               Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const SplashScreen()), (route) => false);
               Fluttertoast.showToast(msg: "👋 Logged out successfully", backgroundColor: AppColors.secondary);

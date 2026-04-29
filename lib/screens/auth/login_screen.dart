@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
-import 'package:mini_fiverr/screens/auth/signup_screen.dart';
+import 'package:mini_fiverr/providers/data_provider.dart';
 import 'package:mini_fiverr/screens/auth/forgot_password_screen.dart';
-import 'package:mini_fiverr/screens/splash_screen.dart';
-import 'package:mini_fiverr/utils/error_handler.dart';
+import 'package:mini_fiverr/screens/auth/signup_screen.dart';
 import 'package:mini_fiverr/utils/theme.dart';
-import 'package:mini_fiverr/utils/validators.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mini_fiverr/widgets/toast_notification.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,120 +15,104 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
+  bool _obscure = true;
 
-  void _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        await Provider.of<AuthProvider>(context, listen: false).login(
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
-        Fluttertoast.showToast(msg: "✅ Welcome back!", backgroundColor: AppColors.success);
-        if (!mounted) return;
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SplashScreen()));
-      } catch (e) {
-        final errorMsg = ErrorHandler.getHumanReadableError(e);
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMsg),
-            backgroundColor: Colors.red.shade700,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    }
+  @override
+  void dispose() {
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final AppAuthProvider auth = context.watch<AppAuthProvider>();
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 40),
-                const Center(
-                  child: Icon(Icons.work_outline, size: 60, color: AppColors.primary),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Welcome to ProHire',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Sign in to your account to continue',
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 40),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email Address',
-                    prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: Validators.validateEmail,
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: <Color>[Color(0xFF09090F), Color(0xFF111126)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: glassCardDecoration(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Welcome Back', style: Theme.of(context).textTheme.headlineMedium),
+                    const SizedBox(height: 8),
+                    const Text('Sign in to continue', style: TextStyle(color: AppColors.textSecondary)),
+                    const SizedBox(height: 18),
+                    TextField(
+                      controller: _email,
+                      decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.mail_outline)),
                     ),
-                    border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
-                  ),
-                  obscureText: _obscurePassword,
-                  validator: (v) => v!.isEmpty ? 'Password is required' : null,
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
-                    child: const Text('Forgot Password?', style: TextStyle(color: AppColors.primary)),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _handleLogin,
-                  child: context.watch<AuthProvider>().isLoading 
-                    ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                    : const Text('Login', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Don't have an account? "),
-                    GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SignupScreen())),
-                      child: const Text(
-                        'Sign Up',
-                        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _password,
+                      obscureText: _obscure,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          onPressed: () => setState(() => _obscure = !_obscure),
+                          icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(builder: (_) => const ForgotPasswordScreen()),
+                        ),
+                        child: const Text('Forgot Password?'),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: auth.isLoading
+                            ? null
+                            : () async {
+                                try {
+                                  await context.read<AppAuthProvider>().login(_email.text.trim(), _password.text);
+                                  await context.read<DataProvider>().syncWithAuth(context.read<AppAuthProvider>().user);
+                                } catch (_) {
+                                  ToastService.showError('Sign in failed', subtitle: auth.error ?? 'Please try again');
+                                }
+                              },
+                        child: auth.isLoading
+                            ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Text('Sign In'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: TextButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(builder: (_) => const SignupScreen()),
+                        ),
+                        child: const Text('Create Account'),
                       ),
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         ),

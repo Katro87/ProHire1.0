@@ -40,7 +40,7 @@ class _ProfileSetupStep1State extends State<ProfileSetupStep1> {
 
     setState(() => _isUploading = true);
 
-    final uid = Provider.of<AuthProvider>(context, listen: false).user!.uid;
+    final uid = Provider.of<AppAuthProvider>(context, listen: false).user!.uid;
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final navigator = Navigator.of(context);
 

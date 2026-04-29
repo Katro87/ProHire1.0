@@ -1,67 +1,94 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+enum HireRequestStatus { pending, accepted, declined, active, completed }
 
-enum JobStatus {
-  pending,
-  accepted,
-  declined,
-  completed
-}
-
-class JobModel {
-  final String id;
-  final String clientId;
-  final String clientName;
-  final String professionalId;
-  final String professionalName;
-  final String description;
-  final double budget;
-  final DateTime? deadline;
-  final JobStatus status;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-
-  JobModel({
+class HireRequestModel {
+  const HireRequestModel({
     required this.id,
     required this.clientId,
     required this.clientName,
     required this.professionalId,
     required this.professionalName,
-    required this.description,
-    this.budget = 0.0,
-    this.deadline,
-    this.status = JobStatus.pending,
+    required this.projectTitle,
+    required this.projectDescription,
+    required this.budget,
+    required this.deadline,
     required this.createdAt,
-    required this.updatedAt,
+    this.progress = 0.0,
+    this.status = HireRequestStatus.pending,
+    this.amountReleased = false,
   });
 
-  factory JobModel.fromMap(Map<String, dynamic> map, String id) {
-    return JobModel(
+  final String id;
+  final String clientId;
+  final String clientName;
+  final String professionalId;
+  final String professionalName;
+  final String projectTitle;
+  final String projectDescription;
+  final double budget;
+  final DateTime deadline;
+  final DateTime createdAt;
+  final double progress;
+  final HireRequestStatus status;
+  final bool amountReleased;
+
+  HireRequestModel copyWith({
+    double? progress,
+    HireRequestStatus? status,
+    bool? amountReleased,
+  }) {
+    return HireRequestModel(
       id: id,
-      clientId: map['clientId'] ?? '',
-      clientName: map['clientName'] ?? '',
-      professionalId: map['professionalId'] ?? '',
-      professionalName: map['professionalName'] ?? '',
-      description: map['description'] ?? '',
-      budget: (map['budget'] ?? 0.0).toDouble(),
-      deadline: map['deadline'] != null ? (map['deadline'] as Timestamp).toDate() : null,
-      status: JobStatus.values.firstWhere((e) => e.name == (map['status'] ?? 'pending')),
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
-      updatedAt: (map['updatedAt'] as Timestamp).toDate(),
+      clientId: clientId,
+      clientName: clientName,
+      professionalId: professionalId,
+      professionalName: professionalName,
+      projectTitle: projectTitle,
+      projectDescription: projectDescription,
+      budget: budget,
+      deadline: deadline,
+      createdAt: createdAt,
+      progress: progress ?? this.progress,
+      status: status ?? this.status,
+      amountReleased: amountReleased ?? this.amountReleased,
     );
   }
 
-  Map<String, dynamic> toMap() {
-    return {
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
       'clientId': clientId,
       'clientName': clientName,
       'professionalId': professionalId,
       'professionalName': professionalName,
-      'description': description,
+      'projectTitle': projectTitle,
+      'projectDescription': projectDescription,
       'budget': budget,
-      'deadline': deadline != null ? Timestamp.fromDate(deadline!) : null,
+      'deadline': deadline.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
+      'progress': progress,
       'status': status.name,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': Timestamp.fromDate(updatedAt),
+      'amountReleased': amountReleased,
     };
+  }
+
+  factory HireRequestModel.fromJson(Map<String, dynamic> map) {
+    return HireRequestModel(
+      id: map['id'] as String,
+      clientId: map['clientId'] as String,
+      clientName: map['clientName'] as String,
+      professionalId: map['professionalId'] as String,
+      professionalName: map['professionalName'] as String,
+      projectTitle: map['projectTitle'] as String,
+      projectDescription: map['projectDescription'] as String,
+      budget: (map['budget'] as num).toDouble(),
+      deadline: DateTime.parse(map['deadline'] as String),
+      createdAt: DateTime.parse(map['createdAt'] as String),
+      progress: ((map['progress'] ?? 0.0) as num).toDouble(),
+      status: HireRequestStatus.values.firstWhere(
+        (HireRequestStatus status) => status.name == map['status'],
+        orElse: () => HireRequestStatus.pending,
+      ),
+      amountReleased: (map['amountReleased'] ?? false) as bool,
+    );
   }
 }

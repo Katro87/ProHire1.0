@@ -20,6 +20,10 @@ dependencies:
   fluttertoast: ^8.2.4
   shimmer: ^3.0.0
   flutter_animate: ^4.5.0
+  shared_preferences: ^2.2.3
+  path_provider: ^2.1.4
+  google_fonts: ^6.2.1
+  uuid: ^4.5.1
   cupertino_icons: ^1.0.6
 
 dev_dependencies:

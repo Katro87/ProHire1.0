@@ -24,7 +24,7 @@ class _ProfileSetupStep3State extends State<ProfileSetupStep3> {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
-              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              final authProvider = Provider.of<AppAuthProvider>(context, listen: false);
               final userProvider = Provider.of<UserProvider>(context, listen: false);
               await userProvider.updateUser(authProvider.user!.uid, {'role': newRole});
               if (!mounted) return;

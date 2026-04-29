@@ -1,139 +1,128 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+enum UserRole { client, professional }
 
 class UserModel {
-  final String uid;
-  final String name;
-  final String email;
-  final String role; // 'client' or 'professional'
-  final bool profileCompleted;
-  final bool hasSecurityQuestions;
-  final String profilePicUrl;
-  final double walletBalance;
-  final DateTime createdAt;
-  final String? companyName;
-  final String? lookingFor;
-  final String? industry;
-  
-  // Professional specific fields
-  final String? professionalTitle;
-  final List<String>? skills;
-  final String? experience;
-  final double? hourlyRate;
-  final String? bio;
-  final bool? isAvailable;
-  final double? rating;
-  final int? reviewCount;
-  final int? completedProjects;
-  final List<String>? favoriteProfessionalIds;
-  
-  // Security Questions
-  final List<Map<String, String>>? securityQuestions;
-
-  UserModel({
-    required this.uid,
-    required this.name,
+  const UserModel({
+    required this.id,
     required this.email,
+    required this.fullName,
     required this.role,
-    this.profileCompleted = false,
-    this.hasSecurityQuestions = false,
-    this.profilePicUrl = '',
-    this.walletBalance = 0.0,
-    required this.createdAt,
-    this.companyName,
-    this.lookingFor,
-    this.industry,
-    this.professionalTitle,
-    this.skills,
-    this.experience,
-    this.hourlyRate,
-    this.bio,
-    this.isAvailable,
-    this.rating,
-    this.reviewCount,
-    this.completedProjects,
-    this.favoriteProfessionalIds,
-    this.securityQuestions,
+    this.bio = '',
+    this.avatarPath = '',
+    this.companyName = '',
+    this.lookingForTalent = '',
+    this.title = '',
+    this.skills = const <String>[],
+    this.experienceYears = 0,
+    this.previousCompany = '',
+    this.workPreferences = const <String>[],
+    this.hourlyRate = 5,
+    this.walletBalance = 10000,
+    this.earnings = 0,
+    this.favoriteProfessionalIds = const <String>[],
   });
 
-  factory UserModel.fromMap(Map<String, dynamic> map) {
-    final createdAtValue = map['createdAt'];
-    final createdAt = createdAtValue is Timestamp
-        ? createdAtValue.toDate()
-        : createdAtValue is DateTime
-            ? createdAtValue
-            : DateTime.now();
+  final String id;
+  final String email;
+  final String fullName;
+  final UserRole role;
+  final String bio;
+  final String avatarPath;
+  final String companyName;
+  final String lookingForTalent;
+  final String title;
+  final List<String> skills;
+  final int experienceYears;
+  final String previousCompany;
+  final List<String> workPreferences;
+  final double hourlyRate;
+  final double walletBalance;
+  final double earnings;
+  final List<String> favoriteProfessionalIds;
 
+  UserModel copyWith({
+    String? fullName,
+    UserRole? role,
+    String? bio,
+    String? avatarPath,
+    String? companyName,
+    String? lookingForTalent,
+    String? title,
+    List<String>? skills,
+    int? experienceYears,
+    String? previousCompany,
+    List<String>? workPreferences,
+    double? hourlyRate,
+    double? walletBalance,
+    double? earnings,
+    List<String>? favoriteProfessionalIds,
+  }) {
     return UserModel(
-      uid: map['uid'] ?? '',
-      name: map['name'] ?? '',
-      email: map['email'] ?? '',
-      role: map['role'] ?? 'client',
-      profileCompleted: map['profileCompleted'] ?? false,
-      hasSecurityQuestions: map['hasSecurityQuestions'] ?? false,
-      profilePicUrl: map['profilePicUrl'] ?? '',
-      walletBalance: (map['walletBalance'] ?? 0.0).toDouble(),
-      createdAt: createdAt,
-      companyName: map['companyName'],
-      lookingFor: map['lookingFor'],
-      industry: map['industry'],
-      professionalTitle: map['professionalTitle'],
-      skills: map['skills'] != null ? List<String>.from(map['skills']) : null,
-      experience: map['experience'],
-      hourlyRate: (map['hourlyRate'] ?? 0.0).toDouble(),
-      bio: map['bio'],
-      isAvailable: map['isAvailable'],
-        rating: (map['rating'] ?? 0.0).toDouble(),
-        reviewCount: (map['reviewCount'] ?? 0) is int ? map['reviewCount'] : (map['reviewCount'] ?? 0).toInt(),
-        completedProjects: (map['completedProjects'] ?? 0) is int ? map['completedProjects'] : (map['completedProjects'] ?? 0).toInt(),
-      favoriteProfessionalIds: map['favoriteProfessionalIds'] != null
-        ? List<String>.from(map['favoriteProfessionalIds'])
-        : null,
-      securityQuestions: map['securityQuestions'] != null 
-        ? List<Map<String, String>>.from(
-            (map['securityQuestions'] as List).map((i) => Map<String, String>.from(i))
-          ) 
-        : null,
+      id: id,
+      email: email,
+      fullName: fullName ?? this.fullName,
+      role: role ?? this.role,
+      bio: bio ?? this.bio,
+      avatarPath: avatarPath ?? this.avatarPath,
+      companyName: companyName ?? this.companyName,
+      lookingForTalent: lookingForTalent ?? this.lookingForTalent,
+      title: title ?? this.title,
+      skills: skills ?? this.skills,
+      experienceYears: experienceYears ?? this.experienceYears,
+      previousCompany: previousCompany ?? this.previousCompany,
+      workPreferences: workPreferences ?? this.workPreferences,
+      hourlyRate: hourlyRate ?? this.hourlyRate,
+      walletBalance: walletBalance ?? this.walletBalance,
+      earnings: earnings ?? this.earnings,
+      favoriteProfessionalIds: favoriteProfessionalIds ?? this.favoriteProfessionalIds,
     );
   }
 
-  String? get title => professionalTitle;
-
-  Map<String, dynamic> toMap() {
-    final map = {
-      'uid': uid,
-      'name': name,
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'id': id,
       'email': email,
-      'role': role,
-      'profileCompleted': profileCompleted,
-      'hasSecurityQuestions': hasSecurityQuestions,
-      'profilePicUrl': profilePicUrl,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'walletBalance': walletBalance,
-      'professionalTitle': professionalTitle,
-      'skills': skills,
-      'experience': experience,
-      'hourlyRate': hourlyRate,
+      'fullName': fullName,
+      'role': role.name,
       'bio': bio,
-      'isAvailable': isAvailable,
+      'avatarPath': avatarPath,
+      'companyName': companyName,
+      'lookingForTalent': lookingForTalent,
+      'title': title,
+      'skills': skills,
+      'experienceYears': experienceYears,
+      'previousCompany': previousCompany,
+      'workPreferences': workPreferences,
+      'hourlyRate': hourlyRate,
+      'walletBalance': walletBalance,
+      'earnings': earnings,
+      'favoriteProfessionalIds': favoriteProfessionalIds,
     };
+  }
 
-    if (companyName != null) {
-      map['companyName'] = companyName;
-    }
-    if (lookingFor != null) {
-      map['lookingFor'] = lookingFor;
-    }
-    if (industry != null) {
-      map['industry'] = industry;
-    }
-    if (securityQuestions != null) {
-      map['securityQuestions'] = securityQuestions;
-    }
-    if (rating != null) map['rating'] = rating;
-    if (reviewCount != null) map['reviewCount'] = reviewCount;
-    if (completedProjects != null) map['completedProjects'] = completedProjects;
-    if (favoriteProfessionalIds != null) map['favoriteProfessionalIds'] = favoriteProfessionalIds;
-
-    return map;
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id'] as String,
+      email: json['email'] as String,
+      fullName: json['fullName'] as String,
+      role: UserRole.values.firstWhere(
+        (UserRole role) => role.name == json['role'],
+        orElse: () => UserRole.client,
+      ),
+      bio: (json['bio'] ?? '') as String,
+      avatarPath: (json['avatarPath'] ?? '') as String,
+      companyName: (json['companyName'] ?? '') as String,
+      lookingForTalent: (json['lookingForTalent'] ?? '') as String,
+      title: (json['title'] ?? '') as String,
+      skills: List<String>.from(json['skills'] ?? const <String>[]),
+      experienceYears: (json['experienceYears'] ?? 0) as int,
+      previousCompany: (json['previousCompany'] ?? '') as String,
+      workPreferences: List<String>.from(json['workPreferences'] ?? const <String>[]),
+      hourlyRate: ((json['hourlyRate'] ?? 5) as num).toDouble(),
+      walletBalance: ((json['walletBalance'] ?? 10000) as num).toDouble(),
+      earnings: ((json['earnings'] ?? 0) as num).toDouble(),
+      favoriteProfessionalIds: List<String>.from(
+        json['favoriteProfessionalIds'] ?? const <String>[],
+      ),
+    );
   }
 }
