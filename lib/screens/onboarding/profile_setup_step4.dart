@@ -72,7 +72,7 @@ class ProfileSetupStep4 extends StatelessWidget {
         child: Column(
           children: [
             _buildRow('Name', user.name),
-            _buildRow('Role', user.role.toUpperCase()),
+            _buildRow('Role', user.role.name.toUpperCase()),
             if (isPro) ...[
               _buildRow('Title', user.professionalTitle ?? ''),
               _buildRow('Rate', '\$${user.hourlyRate}/hr'),

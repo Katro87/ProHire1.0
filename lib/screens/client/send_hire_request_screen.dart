@@ -67,19 +67,23 @@ class _SendHireRequestScreenState extends State<SendHireRequestScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
+                  onPressed: () async {
                   final double budget = double.tryParse(_budget.text.trim()) ?? 0;
                   if (_title.text.trim().isEmpty || _description.text.trim().isEmpty || budget <= 0) {
                     ToastService.showWarning('Please complete all fields');
                     return;
                   }
-                  context.read<DataProvider>().sendHireRequest(
+                    final bool sent = await context.read<DataProvider>().sendHireRequest(
                         pro: widget.professional,
                         projectTitle: _title.text.trim(),
                         description: _description.text.trim(),
                         budget: budget,
                         deadline: _deadline,
                       );
+                    if (!sent) {
+                      ToastService.showError('Could not send request', subtitle: 'Please sign in again and try once more.');
+                      return;
+                    }
                   ToastService.showSuccess('Hire request sent');
                   Navigator.pop(context);
                 },

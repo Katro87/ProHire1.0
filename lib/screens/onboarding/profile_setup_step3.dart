@@ -69,7 +69,7 @@ class _ProfileSetupStep3State extends State<ProfileSetupStep3> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text('Your current role:', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                        Text(user.role.toUpperCase(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.secondary)),
+                        Text(user.role.name.toUpperCase(), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.secondary)),
                       ],
                     ),
                   ),

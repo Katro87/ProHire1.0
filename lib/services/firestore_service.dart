@@ -45,7 +45,7 @@ class FirestoreService {
       .where('profileCompleted', isEqualTo: true)
       .snapshots()
       .map((snapshot) => snapshot.docs
-        .map((doc) => UserModel.fromMap(doc.data()))
+        .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>))
         .toList());
   }
 

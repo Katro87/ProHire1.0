@@ -1,6 +1,18 @@
 import 'package:flutter/material.dart';
 
 class AvatarUtils {
+  static const Map<String, String> _nameAssets = <String, String>{
+    'sufyan': 'assets/images/sufyan1.jpeg',
+    'alexandra': 'assets/images/protfolio.jpeg',
+    'marcus': 'assets/images/customwebx.jpeg',
+    'priya': 'assets/images/photo.webp',
+    'daniel': 'assets/images/E-commerc.png',
+    'bianca': 'assets/images/beezo.PNG',
+    'noah': 'assets/images/AI-Bot.png',
+    'sarah': 'assets/images/suduko.png',
+    'ethan': 'assets/images/adv.PNG',
+  };
+
   static String initialsFromName(String name) {
     final parts = name.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();
     if (parts.isEmpty) {
@@ -38,8 +50,9 @@ class AvatarUtils {
   }) {
     final initials = initialsFromName(name);
     final avatarBackground = backgroundColor ?? backgroundColorForName(name);
+    final String? resolvedImage = _resolveImage(name: name, imageUrl: imageUrl);
 
-    if (imageUrl == null || imageUrl.trim().isEmpty) {
+    if (resolvedImage == null) {
       return CircleAvatar(
         radius: radius,
         backgroundColor: avatarBackground,
@@ -50,15 +63,34 @@ class AvatarUtils {
       );
     }
 
+    final ImageProvider<Object> provider = resolvedImage.startsWith('assets/')
+      ? AssetImage(resolvedImage) as ImageProvider<Object>
+      : NetworkImage(resolvedImage) as ImageProvider<Object>;
+
     return CircleAvatar(
       radius: radius,
       backgroundColor: avatarBackground.withValues(alpha: 0.12),
-      foregroundImage: NetworkImage(imageUrl),
+      foregroundImage: provider,
       onForegroundImageError: (_, __) {},
       child: Text(
         initials,
         style: textStyle ?? const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
     );
+  }
+
+  static String? _resolveImage({required String name, String? imageUrl}) {
+    final String? trimmed = imageUrl == null || imageUrl.trim().isEmpty ? null : imageUrl.trim();
+    if (trimmed != null) {
+      return trimmed;
+    }
+
+    final String lower = name.trim().toLowerCase();
+    for (final MapEntry<String, String> entry in _nameAssets.entries) {
+      if (lower.contains(entry.key)) {
+        return entry.value;
+      }
+    }
+    return null;
   }
 }

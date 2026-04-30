@@ -19,16 +19,30 @@ class MyFavoritesScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('My Favorites')),
       body: favoriteIds.isEmpty
-          ? const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'No favorites yet. Browse talent and tap the heart to save them here!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-              ),
-            )
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 360),
+                        padding: const EdgeInsets.all(24),
+                        decoration: glassCardDecoration(accent: AppColors.primary),
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Icon(Icons.favorite_border_rounded, size: 54, color: AppColors.secondary),
+                            SizedBox(height: 14),
+                            Text('No favorites yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
+                            SizedBox(height: 8),
+                            Text(
+                              'Browse talent and tap the heart to save professionals here.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: AppColors.textSecondary, height: 1.4),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  )
           : StreamBuilder<List<UserModel>>(
               stream: FirestoreService().getProfessionals(),
               builder: (context, snapshot) {

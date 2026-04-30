@@ -14,61 +14,59 @@ import 'package:mini_fiverr/utils/local_storage.dart';
 import 'package:uuid/uuid.dart';
 
 class DataProvider extends ChangeNotifier {
+  DataProvider() {
+    _loadFuture = _load();
+  }
+
   final LocalStorage _storage = LocalStorage();
   final Uuid _uuid = const Uuid();
+  late final Future<void> _loadFuture;
 
   bool _isReady = false;
   UserModel? _currentUser;
+  String? _activeUserId;
   List<ProfessionalModel> _professionals = <ProfessionalModel>[];
   List<HireRequestModel> _hireRequests = <HireRequestModel>[];
   List<ConversationModel> _conversations = <ConversationModel>[];
   List<NotificationModel> _notifications = <NotificationModel>[];
   final Map<String, UserModel> _profiles = <String, UserModel>{};
-  final Map<String, List<SecurityQuestionModel>> _securityByUser =
-      <String, List<SecurityQuestionModel>>{};
+  final Map<String, List<SecurityQuestionModel>> _securityByUser = <String, List<SecurityQuestionModel>>{};
+  final Map<String, Map<String, dynamic>> _userStates = <String, Map<String, dynamic>>{};
 
   bool get isReady => _isReady;
   UserModel? get currentUser => _currentUser;
   UserRole get currentRole => _currentUser?.role ?? UserRole.client;
   List<ProfessionalModel> get professionals => List<ProfessionalModel>.unmodifiable(_professionals);
   List<HireRequestModel> get hireRequests => List<HireRequestModel>.unmodifiable(_hireRequests);
+  List<HireRequestModel> get clientRequests => _requestListForCurrentUser(null, asClient: true);
+  List<HireRequestModel> get professionalRequests => _requestListForCurrentUser(null, asClient: false);
   List<ConversationModel> get conversations => List<ConversationModel>.unmodifiable(_conversations);
   List<NotificationModel> get notifications => List<NotificationModel>.unmodifiable(_notifications);
-
-  List<SecurityQuestionModel> securityQuestionsFor(String userId) {
-    return _securityByUser[userId] ?? <SecurityQuestionModel>[];
+  int get unreadNotificationCount => _notifications.where((NotificationModel notification) => !notification.isRead).length;
+  int get totalUnreadMessages => _conversations.fold<int>(0, (int total, ConversationModel conversation) => total + conversation.unreadCount);
+  List<ProfessionalModel> get favoriteProfessionals {
+    final List<String> favoriteIds = _currentUser?.favoriteProfessionalIds ?? <String>[];
+    return _professionals.where((ProfessionalModel professional) => favoriteIds.contains(professional.id)).toList(growable: false);
   }
 
-  int get unreadNotificationCount =>
-      _notifications.where((NotificationModel n) => !n.isRead).length;
+  Future<void> syncWithAuth(User? authUser) async {
+    await _loadFuture;
 
-  int get totalUnreadMessages => _conversations.fold<int>(
-        0,
-        (int sum, ConversationModel c) => sum + c.unreadCount,
-      );
-
-  Future<void> syncWithAuth(User? firebaseUser) async {
-    if (!_isReady) {
-      await _load();
-    }
-    if (firebaseUser == null) {
+    if (authUser == null) {
       _currentUser = null;
+      _activeUserId = null;
+      _clearSimulationState();
       notifyListeners();
       return;
     }
 
-    if (!_profiles.containsKey(firebaseUser.uid)) {
-      _profiles[firebaseUser.uid] = UserModel(
-        id: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-        fullName: firebaseUser.displayName ?? 'Demo User',
-        role: UserRole.client,
-      );
-      _securityByUser[firebaseUser.uid] = DemoData.defaultSecurityQuestions;
-    }
+    final String uid = authUser.uid;
+    final UserModel profile = _profiles[uid] ?? _profileFromAuth(authUser);
+    _profiles[uid] = profile;
+    _currentUser = profile;
+    _activeUserId = uid;
 
-    _currentUser = _profiles[firebaseUser.uid];
-    _seedConversationsIfNeeded();
+    _loadSimulationStateForUser(uid, demoAccount: _isDemoUser(authUser, profile));
     await _persist();
     notifyListeners();
   }
@@ -79,205 +77,255 @@ class DataProvider extends ChangeNotifier {
     required String fullName,
     required UserRole role,
   }) async {
-    _profiles[uid] = UserModel(
+    await _loadFuture;
+
+    final UserModel profile = UserModel(
       id: uid,
       email: email,
       fullName: fullName,
       role: role,
-      title: role == UserRole.professional ? 'Freelance Professional' : '',
-      walletBalance: 10000,
+      bio: '',
+      avatarPath: _defaultAvatarForName(fullName),
+      companyName: '',
+      lookingForTalent: '',
+      title: '',
+      skills: <String>[],
+      experienceYears: 0,
+      previousCompany: '',
+      workPreferences: <String>[],
+      hourlyRate: 5,
+      walletBalance: 0,
+      earnings: 0,
+      favoriteProfessionalIds: <String>[],
     );
-    _securityByUser[uid] = DemoData.defaultSecurityQuestions;
-    _currentUser = _profiles[uid];
+
+    _profiles[uid] = profile;
+    _currentUser = profile;
+    _activeUserId = uid;
+    _securityByUser.remove(uid);
+    _clearSimulationState();
     await _persist();
     notifyListeners();
   }
 
-  void switchRole() {
-    final UserModel? user = _currentUser;
-    if (user == null) {
+  Future<void> updateProfile({
+    required String fullName,
+    required String bio,
+    String avatarPath = '',
+    required String companyName,
+    required String lookingForTalent,
+    required String title,
+    required List<String> skills,
+    required int experienceYears,
+    required String previousCompany,
+    required List<String> workPreferences,
+    required double hourlyRate,
+    required List<SecurityQuestionModel> security,
+  }) async {
+    await _loadFuture;
+
+    final UserModel? current = _currentUser;
+    if (current == null) {
       return;
     }
-    final UserRole nextRole =
-        user.role == UserRole.client ? UserRole.professional : UserRole.client;
-    _currentUser = user.copyWith(role: nextRole);
-    _profiles[user.id] = _currentUser!;
-    _persist();
+
+    final UserModel updated = current.copyWith(
+      fullName: fullName,
+      bio: bio,
+      avatarPath: avatarPath.trim().isEmpty ? current.avatarPath : avatarPath.trim(),
+      companyName: companyName,
+      lookingForTalent: lookingForTalent,
+      title: title,
+      skills: skills,
+      experienceYears: experienceYears,
+      previousCompany: previousCompany,
+      workPreferences: workPreferences,
+      hourlyRate: hourlyRate,
+    );
+
+    _currentUser = updated;
+    _profiles[updated.id] = updated;
+    _securityByUser[updated.id] = security;
+    await _persist();
     notifyListeners();
   }
 
-  void toggleFavorite(String professionalId) {
-    final UserModel? user = _currentUser;
-    if (user == null || user.role != UserRole.client) {
-      return;
-    }
-    final Set<String> ids = user.favoriteProfessionalIds.toSet();
-    if (ids.contains(professionalId)) {
-      ids.remove(professionalId);
-    } else {
-      ids.add(professionalId);
-    }
-    _updateCurrentUser(user.copyWith(favoriteProfessionalIds: ids.toList()));
-  }
-
-  List<ProfessionalModel> get favoriteProfessionals {
-    final UserModel? user = _currentUser;
-    if (user == null) {
-      return <ProfessionalModel>[];
-    }
-    final Set<String> ids = user.favoriteProfessionalIds.toSet();
-    return _professionals.where((ProfessionalModel p) => ids.contains(p.id)).toList();
-  }
-
-  void updateProfile({
-    required String fullName,
-    required String bio,
-    required String avatarPath,
-    String? companyName,
-    String? lookingForTalent,
-    String? title,
-    List<String>? skills,
-    int? experienceYears,
-    String? previousCompany,
-    List<String>? workPreferences,
-    double? hourlyRate,
-    required List<SecurityQuestionModel> security,
-  }) {
-    final UserModel? user = _currentUser;
-    if (user == null) {
-      return;
-    }
-    final UserModel next = user.copyWith(
-      fullName: fullName,
-      bio: bio,
-      avatarPath: avatarPath,
-      companyName: companyName ?? user.companyName,
-      lookingForTalent: lookingForTalent ?? user.lookingForTalent,
-      title: title ?? user.title,
-      skills: skills ?? user.skills,
-      experienceYears: experienceYears ?? user.experienceYears,
-      previousCompany: previousCompany ?? user.previousCompany,
-      workPreferences: workPreferences ?? user.workPreferences,
-      hourlyRate: hourlyRate ?? user.hourlyRate,
-    );
-    _securityByUser[user.id] = security;
-    _updateCurrentUser(next);
+  List<SecurityQuestionModel> securityQuestionsFor(String uid) {
+    return List<SecurityQuestionModel>.unmodifiable(_securityByUser[uid] ?? <SecurityQuestionModel>[]);
   }
 
   bool verifySecurityAnswers(String email, String answer1, String answer2) {
-    final UserModel? target = _profiles.values.firstWhere(
-      (UserModel u) => u.email.toLowerCase() == email.toLowerCase(),
-      orElse: () => const UserModel(
-        id: '',
-        email: '',
-        fullName: '',
-        role: UserRole.client,
-      ),
+    UserModel? user;
+    for (final UserModel profile in _profiles.values) {
+      if (profile.email.toLowerCase() == email.toLowerCase()) {
+        user = profile;
+        break;
+      }
+    }
+    if (user == null) {
+      return false;
+    }
+
+    final List<SecurityQuestionModel> questions = _securityByUser[user.id] ?? <SecurityQuestionModel>[];
+    if (questions.length < 2) {
+      return false;
+    }
+
+    final String stored1 = questions[0].answer.trim().toLowerCase();
+    final String stored2 = questions[1].answer.trim().toLowerCase();
+    return stored1 == answer1.trim().toLowerCase() && stored2 == answer2.trim().toLowerCase();
+  }
+
+  Future<void> switchRole() async {
+    await _loadFuture;
+
+    final UserModel? current = _currentUser;
+    if (current == null) {
+      return;
+    }
+
+    final UserModel updated = current.copyWith(
+      role: current.role == UserRole.client ? UserRole.professional : UserRole.client,
     );
-    if (target == null || target.id.isEmpty) {
-      return false;
+    _currentUser = updated;
+    _profiles[updated.id] = updated;
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> toggleFavorite(String professionalId) async {
+    await _loadFuture;
+
+    final UserModel? current = _currentUser;
+    if (current == null) {
+      return;
     }
-    final List<SecurityQuestionModel> qs = _securityByUser[target.id] ?? <SecurityQuestionModel>[];
-    if (qs.length < 2) {
-      return false;
+
+    final List<String> favoriteIds = List<String>.from(current.favoriteProfessionalIds);
+    if (favoriteIds.contains(professionalId)) {
+      favoriteIds.remove(professionalId);
+    } else {
+      favoriteIds.add(professionalId);
     }
-    return qs[0].answer.trim().toLowerCase() == answer1.trim().toLowerCase() &&
-        qs[1].answer.trim().toLowerCase() == answer2.trim().toLowerCase();
+
+    final UserModel updated = current.copyWith(favoriteProfessionalIds: favoriteIds);
+    _currentUser = updated;
+    _profiles[updated.id] = updated;
+    await _persist();
+    notifyListeners();
   }
 
-  List<HireRequestModel> get clientRequests {
-    final String uid = _currentUser?.id ?? '';
-    return _hireRequests.where((HireRequestModel r) => r.clientId == uid).toList();
-  }
-
-  List<HireRequestModel> get professionalRequests {
-    final String uid = _currentUser?.id ?? '';
-    return _hireRequests.where((HireRequestModel r) => r.professionalId == uid).toList();
-  }
-
-  void sendHireRequest({
+  Future<bool> sendHireRequest({
     required ProfessionalModel pro,
     required String projectTitle,
     required String description,
     required double budget,
     required DateTime deadline,
-  }) {
-    final UserModel? user = _currentUser;
-    if (user == null) {
-      return;
+  }) async {
+    await _loadFuture;
+
+    final UserModel? current = _currentUser;
+    if (current == null) {
+      return false;
     }
 
-    _updateCurrentUser(user.copyWith(walletBalance: user.walletBalance - budget));
-
-    _hireRequests.add(
-      HireRequestModel(
-        id: _uuid.v4(),
-        clientId: user.id,
-        clientName: user.fullName,
-        professionalId: pro.id,
-        professionalName: pro.name,
-        projectTitle: projectTitle,
-        projectDescription: description,
-        budget: budget,
-        deadline: deadline,
-        createdAt: DateTime.now(),
-      ),
+    final HireRequestModel request = HireRequestModel(
+      id: _uuid.v4(),
+      clientId: current.id,
+      clientName: current.fullName,
+      professionalId: pro.id,
+      professionalName: pro.name,
+      projectTitle: projectTitle,
+      projectDescription: description,
+      budget: budget,
+      deadline: deadline,
+      createdAt: DateTime.now(),
     );
-
+    _hireRequests.insert(0, request);
     _notifications.insert(
       0,
       NotificationModel(
         id: _uuid.v4(),
-        title: 'New hire request',
-        body: '${user.fullName} sent you a request',
+        title: 'Request sent',
+        body: 'Your request for ${pro.name} was sent',
         previewText: projectTitle,
         timestamp: DateTime.now(),
         type: NotificationType.newHireRequest,
+        relatedRequestId: request.id,
       ),
     );
-
-    _persist();
+    await _persist();
     notifyListeners();
+    return true;
   }
 
-  void updateRequestStatus(String requestId, HireRequestStatus status) {
-    final int index = _hireRequests.indexWhere((HireRequestModel r) => r.id == requestId);
+  Future<void> updateRequestStatus(String id, HireRequestStatus status) async {
+    await _loadFuture;
+
+    final int index = _hireRequests.indexWhere((HireRequestModel request) => request.id == id);
     if (index < 0) {
       return;
     }
-    _hireRequests[index] = _hireRequests[index].copyWith(status: status);
-    _notifications.insert(
-      0,
-      NotificationModel(
-        id: _uuid.v4(),
-        title: status == HireRequestStatus.accepted ? 'Request accepted' : 'Request declined',
-        body: '${_hireRequests[index].professionalName} ${status.name} your request',
-        timestamp: DateTime.now(),
-        type: status == HireRequestStatus.accepted
-            ? NotificationType.hireAccepted
-            : NotificationType.hireDeclined,
-        relatedRequestId: requestId,
-      ),
-    );
-    _persist();
+
+    final HireRequestModel updatedRequest = _hireRequests[index].copyWith(status: status);
+    _hireRequests[index] = updatedRequest;
+
+    if (status == HireRequestStatus.accepted) {
+      _notifications.insert(
+        0,
+        NotificationModel(
+          id: _uuid.v4(),
+          title: 'Request accepted',
+          body: '${updatedRequest.professionalName} accepted your hire request',
+          previewText: updatedRequest.projectTitle,
+          timestamp: DateTime.now(),
+          type: NotificationType.hireAccepted,
+          relatedRequestId: updatedRequest.id,
+        ),
+      );
+    } else if (status == HireRequestStatus.declined) {
+      _notifications.insert(
+        0,
+        NotificationModel(
+          id: _uuid.v4(),
+          title: 'Request declined',
+          body: '${updatedRequest.professionalName} declined your hire request',
+          previewText: updatedRequest.projectTitle,
+          timestamp: DateTime.now(),
+          type: NotificationType.hireDeclined,
+          relatedRequestId: updatedRequest.id,
+        ),
+      );
+    }
+
+    await _persist();
     notifyListeners();
   }
 
-  void completeJobAndReleasePayment(String requestId) {
-    final int index = _hireRequests.indexWhere((HireRequestModel r) => r.id == requestId);
+  Future<void> completeJobAndReleasePayment(String requestId) async {
+    await _loadFuture;
+
+    final int index = _hireRequests.indexWhere((HireRequestModel request) => request.id == requestId);
     if (index < 0) {
       return;
     }
-    final HireRequestModel req =
-        _hireRequests[index].copyWith(status: HireRequestStatus.completed, amountReleased: true);
-    _hireRequests[index] = req;
 
-    final UserModel? pro = _profiles[req.professionalId];
-    if (pro != null) {
-      _profiles[pro.id] = pro.copyWith(earnings: pro.earnings + req.budget);
-    }
-    if (_currentUser?.id == req.professionalId) {
-      _currentUser = _profiles[req.professionalId];
+    final HireRequestModel request = _hireRequests[index].copyWith(
+      status: HireRequestStatus.completed,
+      amountReleased: true,
+    );
+    _hireRequests[index] = request;
+
+    final UserModel? professional = _profiles[request.professionalId];
+    if (professional != null) {
+      final UserModel updatedProfessional = professional.copyWith(
+        earnings: professional.earnings + request.budget,
+        walletBalance: professional.walletBalance + request.budget,
+      );
+      _profiles[updatedProfessional.id] = updatedProfessional;
+      if (_currentUser?.id == updatedProfessional.id) {
+        _currentUser = updatedProfessional;
+      }
     }
 
     _notifications.insert(
@@ -285,13 +333,13 @@ class DataProvider extends ChangeNotifier {
       NotificationModel(
         id: _uuid.v4(),
         title: 'Payment released',
-        body: 'Payment for ${req.projectTitle} was released',
+        body: 'Payment for ${request.projectTitle} was released',
         timestamp: DateTime.now(),
         type: NotificationType.projectCompleted,
-        relatedRequestId: req.id,
+        relatedRequestId: request.id,
       ),
     );
-    _persist();
+    await _persist();
     notifyListeners();
   }
 
@@ -302,7 +350,7 @@ class DataProvider extends ChangeNotifier {
   }) {
     final String me = _currentUser?.id ?? '';
     final int existing = _conversations.indexWhere(
-      (ConversationModel c) => c.meId == me && c.otherUserId == otherUserId,
+      (ConversationModel conversation) => conversation.meId == me && conversation.otherUserId == otherUserId,
     );
     if (existing >= 0) {
       return _conversations[existing];
@@ -324,23 +372,24 @@ class DataProvider extends ChangeNotifier {
   }
 
   void sendMessage({required String conversationId, required String content}) {
-    final int index = _conversations.indexWhere((ConversationModel c) => c.id == conversationId);
+    final int index = _conversations.indexWhere((ConversationModel conversation) => conversation.id == conversationId);
     if (index < 0 || content.trim().isEmpty) {
       return;
     }
-    final ConversationModel c = _conversations[index];
+
+    final ConversationModel conversation = _conversations[index];
     final List<MessageModel> nextMessages = <MessageModel>[
-      ...c.messages,
+      ...conversation.messages,
       MessageModel(
         id: _uuid.v4(),
-        senderId: _currentUser!.id,
+        senderId: _currentUser?.id ?? '',
         content: content.trim(),
         timestamp: DateTime.now(),
         isSentByMe: true,
         isRead: true,
       ),
     ];
-    _conversations[index] = c.copyWith(messages: nextMessages);
+    _conversations[index] = conversation.copyWith(messages: nextMessages);
     _persist();
     notifyListeners();
   }
@@ -350,153 +399,258 @@ class DataProvider extends ChangeNotifier {
     required String reply,
   }) async {
     await Future<void>.delayed(const Duration(seconds: 2));
-    final int index = _conversations.indexWhere((ConversationModel c) => c.id == conversationId);
+
+    final int index = _conversations.indexWhere((ConversationModel conversation) => conversation.id == conversationId);
     if (index < 0) {
       return;
     }
-    final ConversationModel c = _conversations[index];
-    final List<MessageModel> next = <MessageModel>[
-      ...c.messages,
+
+    final ConversationModel conversation = _conversations[index];
+    final List<MessageModel> nextMessages = <MessageModel>[
+      ...conversation.messages,
       MessageModel(
         id: _uuid.v4(),
-        senderId: c.otherUserId,
+        senderId: conversation.otherUserId,
         content: reply,
         timestamp: DateTime.now(),
         isSentByMe: false,
         isRead: false,
       ),
     ];
-    _conversations[index] = c.copyWith(messages: next);
+    _conversations[index] = conversation.copyWith(messages: nextMessages);
     _notifications.insert(
       0,
       NotificationModel(
         id: _uuid.v4(),
         title: 'New message',
-        body: '${c.otherUserName} sent a message',
+        body: '${conversation.otherUserName} sent a message',
         previewText: reply,
         timestamp: DateTime.now(),
         type: NotificationType.message,
-        relatedConversationId: c.id,
+        relatedConversationId: conversation.id,
       ),
     );
     _persist();
     notifyListeners();
   }
 
-  void markConversationAsRead(String conversationId) {
-    final int index = _conversations.indexWhere((ConversationModel c) => c.id == conversationId);
+  Future<void> markConversationAsRead(String conversationId) async {
+    final int index = _conversations.indexWhere((ConversationModel conversation) => conversation.id == conversationId);
     if (index < 0) {
       return;
     }
-    final ConversationModel c = _conversations[index];
-    final List<MessageModel> next = c.messages
-        .map((MessageModel m) => m.isSentByMe ? m : m.copyWith(isRead: true))
+
+    final ConversationModel conversation = _conversations[index];
+    final List<MessageModel> nextMessages = conversation.messages
+        .map((MessageModel message) => message.isSentByMe ? message : message.copyWith(isRead: true))
         .toList();
-    _conversations[index] = c.copyWith(messages: next);
-    _persist();
+    _conversations[index] = conversation.copyWith(messages: nextMessages);
+    await _persist();
     notifyListeners();
   }
 
-  void markAllConversationsAsRead() {
+  Future<void> markAllConversationsAsRead() async {
     _conversations = _conversations
         .map(
-          (ConversationModel c) => c.copyWith(
-            messages: c.messages
-                .map((MessageModel m) => m.isSentByMe ? m : m.copyWith(isRead: true))
+          (ConversationModel conversation) => conversation.copyWith(
+            messages: conversation.messages
+                .map((MessageModel message) => message.isSentByMe ? message : message.copyWith(isRead: true))
                 .toList(),
           ),
         )
         .toList();
-    _persist();
+    await _persist();
     notifyListeners();
   }
 
-  void markNotificationAsRead(String id) {
-    final int index = _notifications.indexWhere((NotificationModel n) => n.id == id);
+  Future<void> markNotificationAsRead(String id) async {
+    final int index = _notifications.indexWhere((NotificationModel notification) => notification.id == id);
     if (index < 0) {
       return;
     }
     _notifications[index] = _notifications[index].copyWith(isRead: true);
-    _persist();
+    await _persist();
     notifyListeners();
   }
 
-  void markAllNotificationsAsRead() {
-    _notifications = _notifications
-        .map((NotificationModel n) => n.copyWith(isRead: true))
-        .toList();
-    _persist();
+  Future<void> markAllNotificationsAsRead() async {
+    _notifications = _notifications.map((NotificationModel notification) => notification.copyWith(isRead: true)).toList();
+    await _persist();
     notifyListeners();
   }
 
   Future<void> _load() async {
     final Map<String, dynamic>? cached = await _storage.readData();
-    if (cached == null) {
-      _professionals = DemoData.professionals;
-      _hireRequests = <HireRequestModel>[];
-      _conversations = DemoData.conversations;
-      _notifications = DemoData.notifications;
-      _isReady = true;
-      return;
+    _professionals = cached == null
+        ? DemoData.professionals
+        : (cached['professionals'] as List<dynamic>? ?? <dynamic>[])
+            .map((dynamic entry) => ProfessionalModel.fromJson(entry as Map<String, dynamic>))
+            .toList();
+
+    if (cached != null) {
+      _profiles.clear();
+      for (final MapEntry<String, dynamic> entry in (cached['profiles'] as Map<String, dynamic>? ?? <String, dynamic>{}).entries) {
+        _profiles[entry.key] = UserModel.fromJson(entry.value as Map<String, dynamic>);
+      }
+
+      _securityByUser.clear();
+      for (final MapEntry<String, dynamic> entry in (cached['securityByUser'] as Map<String, dynamic>? ?? <String, dynamic>{}).entries) {
+        _securityByUser[entry.key] = (entry.value as List<dynamic>)
+            .map((dynamic question) => SecurityQuestionModel.fromJson(question as Map<String, dynamic>))
+            .toList();
+      }
+
+      _userStates.clear();
+      for (final MapEntry<String, dynamic> entry in (cached['userStates'] as Map<String, dynamic>? ?? <String, dynamic>{}).entries) {
+        _userStates[entry.key] = Map<String, dynamic>.from(entry.value as Map);
+      }
     }
-
-    _professionals = (cached['professionals'] as List<dynamic>)
-        .map((dynamic e) => ProfessionalModel.fromJson(e as Map<String, dynamic>))
-        .toList();
-    _hireRequests = (cached['hireRequests'] as List<dynamic>)
-        .map((dynamic e) => HireRequestModel.fromJson(e as Map<String, dynamic>))
-        .toList();
-    _conversations = (cached['conversations'] as List<dynamic>)
-        .map((dynamic e) => ConversationModel.fromJson(e as Map<String, dynamic>))
-        .toList();
-    _notifications = (cached['notifications'] as List<dynamic>)
-        .map((dynamic e) => NotificationModel.fromJson(e as Map<String, dynamic>))
-        .toList();
-
-    final Map<String, dynamic> profiles = cached['profiles'] as Map<String, dynamic>;
-    profiles.forEach((String key, dynamic value) {
-      _profiles[key] = UserModel.fromJson(value as Map<String, dynamic>);
-    });
-
-    final Map<String, dynamic> sec = cached['securityByUser'] as Map<String, dynamic>;
-    sec.forEach((String key, dynamic value) {
-      _securityByUser[key] = (value as List<dynamic>)
-          .map((dynamic e) => SecurityQuestionModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    });
 
     _isReady = true;
   }
 
   Future<void> _persist() {
-    return _storage.writeData(
-      <String, dynamic>{
-        'professionals': _professionals.map((ProfessionalModel p) => p.toJson()).toList(),
-        'hireRequests': _hireRequests.map((HireRequestModel h) => h.toJson()).toList(),
-        'conversations': _conversations.map((ConversationModel c) => c.toJson()).toList(),
-        'notifications': _notifications.map((NotificationModel n) => n.toJson()).toList(),
-        'profiles': _profiles.map((String key, UserModel value) => MapEntry<String, dynamic>(key, value.toJson())),
-        'securityByUser': _securityByUser.map(
-          (String key, List<SecurityQuestionModel> value) => MapEntry<String, dynamic>(
-            key,
-            value.map((SecurityQuestionModel q) => q.toJson()).toList(),
-          ),
+    if (_activeUserId != null) {
+      _userStates[_activeUserId!] = _stateForCurrentUser();
+    }
+
+    return _storage.writeData(<String, dynamic>{
+      'professionals': _professionals.map((ProfessionalModel professional) => professional.toJson()).toList(),
+      'profiles': _profiles.map((String key, UserModel value) => MapEntry<String, dynamic>(key, value.toJson())),
+      'securityByUser': _securityByUser.map(
+        (String key, List<SecurityQuestionModel> value) => MapEntry<String, dynamic>(
+          key,
+          value.map((SecurityQuestionModel question) => question.toJson()).toList(),
         ),
-      },
+      ),
+      'userStates': _userStates,
+    });
+  }
+
+  Map<String, dynamic> _stateForCurrentUser() {
+    return <String, dynamic>{
+      'hireRequests': _hireRequests.map((HireRequestModel request) => request.toJson()).toList(),
+      'conversations': _conversations.map((ConversationModel conversation) => conversation.toJson()).toList(),
+      'notifications': _notifications.map((NotificationModel notification) => notification.toJson()).toList(),
+    };
+  }
+
+  void _clearSimulationState() {
+    _hireRequests = <HireRequestModel>[];
+    _conversations = <ConversationModel>[];
+    _notifications = <NotificationModel>[];
+  }
+
+  void _loadSimulationStateForUser(String uid, {required bool demoAccount}) {
+    if (!demoAccount) {
+      final Map<String, dynamic>? state = _userStates[uid];
+      if (state == null) {
+        _clearSimulationState();
+        return;
+      }
+
+      _hireRequests = (state['hireRequests'] as List<dynamic>? ?? <dynamic>[])
+          .map((dynamic entry) => HireRequestModel.fromJson(entry as Map<String, dynamic>))
+          .toList();
+      _conversations = (state['conversations'] as List<dynamic>? ?? <dynamic>[])
+          .map((dynamic entry) => ConversationModel.fromJson(entry as Map<String, dynamic>))
+          .toList();
+      _notifications = (state['notifications'] as List<dynamic>? ?? <dynamic>[])
+          .map((dynamic entry) => NotificationModel.fromJson(entry as Map<String, dynamic>))
+          .toList();
+      return;
+    }
+
+    final Map<String, dynamic>? state = _userStates[uid];
+    if (state != null) {
+      _hireRequests = (state['hireRequests'] as List<dynamic>? ?? <dynamic>[])
+          .map((dynamic entry) => HireRequestModel.fromJson(entry as Map<String, dynamic>))
+          .toList();
+      _conversations = (state['conversations'] as List<dynamic>? ?? <dynamic>[])
+          .map((dynamic entry) => ConversationModel.fromJson(entry as Map<String, dynamic>))
+          .toList();
+      _notifications = (state['notifications'] as List<dynamic>? ?? <dynamic>[])
+          .map((dynamic entry) => NotificationModel.fromJson(entry as Map<String, dynamic>))
+          .toList();
+      return;
+    }
+
+    _hireRequests = DemoData.hireRequests;
+    _conversations = DemoData.conversations
+        .map(
+          (ConversationModel conversation) => ConversationModel(
+            id: conversation.id,
+            meId: uid,
+            otherUserId: conversation.otherUserId,
+            otherUserName: conversation.otherUserName,
+            otherUserAvatar: conversation.otherUserAvatar,
+            isOtherOnline: conversation.isOtherOnline,
+            messages: conversation.messages,
+          ),
+        )
+        .toList();
+    _notifications = DemoData.notifications;
+
+    final UserModel? current = _currentUser;
+    if (current != null && current.role == UserRole.client && current.favoriteProfessionalIds.isEmpty) {
+      final UserModel seeded = current.copyWith(favoriteProfessionalIds: <String>['pro_1', 'pro_2', 'pro_3']);
+      _currentUser = seeded;
+      _profiles[uid] = seeded;
+    }
+  }
+
+  bool _isDemoUser(User? authUser, UserModel profile) {
+    final String email = (authUser?.email ?? profile.email).toLowerCase();
+    final String name = profile.fullName.toLowerCase();
+    final String uid = (authUser?.uid ?? profile.id).toLowerCase();
+    return email.contains('.demo@minihire.com') || name.contains('sufyan') || uid == 'sufyan' || uid.startsWith('pro_');
+  }
+
+  UserModel _profileFromAuth(User authUser) {
+    final String name = (authUser.displayName?.trim().isNotEmpty ?? false)
+        ? authUser.displayName!.trim()
+        : (authUser.email?.split('@').first ?? 'User');
+    return UserModel(
+      id: authUser.uid,
+      email: authUser.email ?? '',
+      fullName: name,
+      role: authUser.uid.startsWith('pro_') ? UserRole.professional : UserRole.client,
+      bio: '',
+      avatarPath: _defaultAvatarForName(name),
+      companyName: '',
+      lookingForTalent: '',
+      title: '',
+      skills: <String>[],
+      experienceYears: 0,
+      previousCompany: '',
+      workPreferences: <String>[],
+      hourlyRate: 5,
+      walletBalance: 0,
+      earnings: 0,
+      favoriteProfessionalIds: <String>[],
     );
   }
 
-  void _updateCurrentUser(UserModel user) {
-    _currentUser = user;
-    _profiles[user.id] = user;
-    _persist();
-    notifyListeners();
+  List<HireRequestModel> _requestListForCurrentUser(HireRequestStatus? status, {required bool asClient}) {
+    final UserModel? current = _currentUser;
+    if (current == null) {
+      return <HireRequestModel>[];
+    }
+
+    Iterable<HireRequestModel> list = _hireRequests.where(
+      (HireRequestModel request) => asClient ? request.clientId == current.id : request.professionalId == current.id,
+    );
+    if (status != null) {
+      list = list.where((HireRequestModel request) => request.status == status);
+    }
+    return list.toList(growable: false);
   }
 
-  void _seedConversationsIfNeeded() {
-    if (_conversations.isNotEmpty) {
-      return;
+  String _defaultAvatarForName(String name) {
+    final String lower = name.trim().toLowerCase();
+    if (lower.contains('sufyan')) {
+      return 'assets/images/sufyan1.jpeg';
     }
-    _conversations = DemoData.conversations;
+    return '';
   }
 }

@@ -34,7 +34,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         Align(
           alignment: Alignment.centerRight,
           child: TextButton(
-            onPressed: () => data.markAllConversationsAsRead(),
+            onPressed: () async => data.markAllConversationsAsRead(),
             child: const Text('Mark All Read'),
           ),
         ),
@@ -57,6 +57,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           if (c.hasUnread) const Padding(
                             padding: EdgeInsets.only(top: 4),
                             child: CircleAvatar(radius: 4, backgroundColor: Color(0xFF6C5CE7)),
+                          ),
+                          TextButton(
+                            onPressed: c.hasUnread ? () async => data.markConversationAsRead(c.id) : null,
+                            child: const Text('Mark as Read'),
                           ),
                         ],
                       ),

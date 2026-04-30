@@ -6,6 +6,7 @@ import 'package:mini_fiverr/firebase_config.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/chat_provider.dart';
 import 'package:mini_fiverr/providers/data_provider.dart';
+import 'package:mini_fiverr/screens/startup_gate.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/widgets/toast_notification.dart';
 
@@ -40,7 +41,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         navigatorKey: ToastService.navigatorKey,
         theme: buildAppTheme(),
-        home: const ProHireApp(),
+        home: const StartupGate(),
       ),
     );
   }

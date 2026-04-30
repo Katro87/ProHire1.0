@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:mini_fiverr/models/user_model.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/data_provider.dart';
+import 'package:mini_fiverr/widgets/role_switcher.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/widgets/toast_notification.dart';
 
@@ -73,7 +74,13 @@ class _SignupScreenState extends State<SignupScreen> {
                                   );
                               ToastService.showSuccess('Welcome to ProHire');
                               if (mounted) {
-                                Navigator.pop(context);
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => RoleSwitcher(initialIndex: _role == UserRole.client ? 4 : 3),
+                                  ),
+                                  (Route<dynamic> route) => false,
+                                );
                               }
                             } catch (_) {
                               ToastService.showError('Could not create account', subtitle: auth.error ?? 'Try again');

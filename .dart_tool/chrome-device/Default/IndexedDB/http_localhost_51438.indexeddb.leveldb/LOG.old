@@ -1,0 +1,25 @@
+2026/04/30-10:56:38.110 47f0 Reusing MANIFEST C:\Users\hc\AppData\Local\Temp\flutter_tools.f19512d6\flutter_tools_chrome_device.9a29a7de\Default\IndexedDB\http_localhost_51438.indexeddb.leveldb/MANIFEST-000001
+2026/04/30-10:56:38.111 47f0 Recovering log #4
+2026/04/30-10:56:38.111 47f0 Reusing old log C:\Users\hc\AppData\Local\Temp\flutter_tools.f19512d6\flutter_tools_chrome_device.9a29a7de\Default\IndexedDB\http_localhost_51438.indexeddb.leveldb/000004.log 
+2026/04/30-10:56:38.127 2958 Level-0 table #8: started
+2026/04/30-10:56:38.154 2958 Level-0 table #8: 1920 bytes OK
+2026/04/30-10:56:38.161 2958 Delete type=0 #4
+2026/04/30-10:56:38.162 47f0 Manual compaction at level-0 from '\x00\x04\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x05\x00\x00\x00' @ 0 : 0; will stop at (end)
+2026/04/30-10:59:18.958 40c0 Compacting 1@1 + 1@2 files
+2026/04/30-10:59:19.130 40c0 Generated table #9@1: 39 keys, 1313 bytes
+2026/04/30-10:59:19.130 40c0 Compacted 1@1 + 1@2 files => 1313 bytes
+2026/04/30-10:59:19.139 40c0 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/04/30-10:59:19.140 40c0 Delete type=2 #5
+2026/04/30-10:59:19.140 40c0 Delete type=2 #8
+2026/04/30-11:34:13.743 40c0 Level-0 table #11: started
+2026/04/30-11:34:13.752 40c0 Level-0 table #11: 3079 bytes OK
+2026/04/30-11:34:13.761 40c0 Delete type=0 #7
+2026/04/30-11:34:13.761 40c0 Manual compaction at level-0 from (begin) .. (end); will stop at (end)
+2026/04/30-11:34:13.762 40c0 Manual compaction at level-1 from (begin) .. (end); will stop at '\x00\x03\x01\x02\x013\x00[\x00D\x00E\x00F\x00A\x00U\x00L\x00T\x00]\x00!\x001\x00:\x001\x001\x001\x002\x009\x000\x004\x007\x008\x005\x003\x005\x00:\x00w\x00e\x00b\x00:\x000\x00d\x006\x009\x00a\x002\x005\x00a\x00d\x005\x009\x008\x007\x005\x00e\x000\x002\x00a\x007\x003\x00e\x002' @ 167 : 1
+2026/04/30-11:34:13.762 40c0 Compacting 1@1 + 1@2 files
+2026/04/30-11:34:13.778 40c0 Generated table #12@1: 36 keys, 2958 bytes
+2026/04/30-11:34:13.778 40c0 Compacted 1@1 + 1@2 files => 2958 bytes
+2026/04/30-11:34:13.785 40c0 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/04/30-11:34:13.786 40c0 Delete type=2 #9
+2026/04/30-11:34:13.786 40c0 Delete type=2 #11
+2026/04/30-11:34:13.788 40c0 Manual compaction at level-1 from '\x00\x03\x01\x02\x013\x00[\x00D\x00E\x00F\x00A\x00U\x00L\x00T\x00]\x00!\x001\x00:\x001\x001\x001\x002\x009\x000\x004\x007\x008\x005\x003\x005\x00:\x00w\x00e\x00b\x00:\x000\x00d\x006\x009\x00a\x002\x005\x00a\x00d\x005\x009\x008\x007\x005\x00e\x000\x002\x00a\x007\x003\x00e\x002' @ 167 : 1 .. (end); will stop at (end)

@@ -39,6 +39,20 @@ class UserModel {
   final double earnings;
   final List<String> favoriteProfessionalIds;
 
+  String get name => fullName;
+
+  String get profilePicUrl => avatarPath;
+
+  String? get professionalTitle => title.isEmpty ? null : title;
+
+  String? get experience => experienceYears > 0 ? '$experienceYears years' : null;
+
+  String? get industry => lookingForTalent.isEmpty ? null : lookingForTalent;
+
+  double? get rating => null;
+
+  int? get reviewCount => null;
+
   UserModel copyWith({
     String? fullName,
     UserRole? role,
@@ -125,4 +139,6 @@ class UserModel {
       ),
     );
   }
+
+  factory UserModel.fromMap(Map<String, dynamic> map) => UserModel.fromJson(map);
 }

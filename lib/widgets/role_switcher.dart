@@ -8,22 +8,29 @@ import 'package:mini_fiverr/screens/client/favorites_screen.dart';
 import 'package:mini_fiverr/screens/client/find_talent_screen.dart';
 import 'package:mini_fiverr/screens/professional/job_requests_screen.dart';
 import 'package:mini_fiverr/screens/professional/professional_home_screen.dart';
-import 'package:mini_fiverr/screens/professional/professional_profile_view_screen.dart';
-import 'package:mini_fiverr/screens/shared/edit_profile_screen.dart';
+import 'package:mini_fiverr/screens/profile/profile_screen.dart';
 import 'package:mini_fiverr/screens/shared/messages_screen.dart';
 import 'package:mini_fiverr/screens/shared/notifications_screen.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/widgets/custom_bottom_nav.dart';
 
 class RoleSwitcher extends StatefulWidget {
-  const RoleSwitcher({super.key});
+  const RoleSwitcher({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   State<RoleSwitcher> createState() => _RoleSwitcherState();
 }
 
 class _RoleSwitcherState extends State<RoleSwitcher> {
-  int _index = 0;
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,13 +43,13 @@ class _RoleSwitcherState extends State<RoleSwitcher> {
             FindTalentScreen(),
             MessagesScreen(),
             FavoritesScreen(),
-            EditProfileScreen(),
+            ProfileScreen(),
           ]
         : const <Widget>[
             ProfessionalHomeScreen(),
             JobRequestsScreen(),
             MessagesScreen(),
-            ProfessionalProfileViewScreen(),
+            ProfileScreen(),
           ];
 
     final List<NavItemData> items = isClient

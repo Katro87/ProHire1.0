@@ -14,7 +14,7 @@ class NotificationsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Notifications'),
         actions: <Widget>[
-          TextButton(onPressed: data.markAllNotificationsAsRead, child: const Text('Mark All Read')),
+          TextButton(onPressed: () async => data.markAllNotificationsAsRead(), child: const Text('Mark All Read')),
         ],
       ),
       body: ListView.builder(
@@ -26,7 +26,11 @@ class NotificationsScreen extends StatelessWidget {
             title: Text(n.title, style: TextStyle(fontWeight: n.isRead ? FontWeight.w500 : FontWeight.bold)),
             subtitle: Text('${n.body}\n${DateFormat.yMMMd().add_jm().format(n.timestamp)}'),
             isThreeLine: true,
-            onTap: () => data.markNotificationAsRead(n.id),
+            trailing: TextButton(
+              onPressed: n.isRead ? null : () async => data.markNotificationAsRead(n.id),
+              child: Text(n.isRead ? 'Read' : 'Mark as Read'),
+            ),
+            onTap: () async => data.markNotificationAsRead(n.id),
           );
         },
       ),
