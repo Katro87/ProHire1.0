@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/screens/auth/signup_screen.dart';
+import 'package:mini_fiverr/screens/auth/forgot_password_screen.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/widgets/toast_notification.dart';
 import 'package:provider/provider.dart';
@@ -47,7 +48,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordScreen())),
+                  child: const Text('Forgot Password?', style: TextStyle(fontSize: 13, color: AppColors.primary)),
+                ),
+              ),
+              const SizedBox(height: 24),
               _buildPrimaryButton(
                 label: 'Sign In',
                 onPressed: _loading ? null : _handleLogin,

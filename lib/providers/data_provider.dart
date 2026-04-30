@@ -154,6 +154,18 @@ class DataProvider extends ChangeNotifier {
     return List<SecurityQuestionModel>.unmodifiable(_securityByUser[uid] ?? <SecurityQuestionModel>[]);
   }
 
+  List<SecurityQuestionModel> securityQuestionsForEmail(String email) {
+    UserModel? user;
+    for (final UserModel profile in _profiles.values) {
+      if (profile.email.toLowerCase() == email.toLowerCase()) {
+        user = profile;
+        break;
+      }
+    }
+    if (user == null) return [];
+    return List<SecurityQuestionModel>.unmodifiable(_securityByUser[user.id] ?? <SecurityQuestionModel>[]);
+  }
+
   bool verifySecurityAnswers(String email, String answer1, String answer2) {
     UserModel? user;
     for (final UserModel profile in _profiles.values) {
