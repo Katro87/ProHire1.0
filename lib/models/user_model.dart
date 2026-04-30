@@ -19,6 +19,7 @@ class UserModel {
     this.walletBalance = 10000,
     this.earnings = 0,
     this.favoriteProfessionalIds = const <String>[],
+    this.securityQuestions = const [],
   });
 
   final String id;
@@ -38,6 +39,9 @@ class UserModel {
   final double walletBalance;
   final double earnings;
   final List<String> favoriteProfessionalIds;
+  final List<Map<String, dynamic>> securityQuestions;
+
+  String get uid => id;
 
   String get name => fullName;
 
@@ -48,6 +52,8 @@ class UserModel {
   String? get experience => experienceYears > 0 ? '$experienceYears years' : null;
 
   String? get industry => lookingForTalent.isEmpty ? null : lookingForTalent;
+
+  String get lookingFor => lookingForTalent;
 
   double? get rating => null;
 
@@ -69,6 +75,7 @@ class UserModel {
     double? walletBalance,
     double? earnings,
     List<String>? favoriteProfessionalIds,
+    List<Map<String, dynamic>>? securityQuestions,
   }) {
     return UserModel(
       id: id,
@@ -88,6 +95,7 @@ class UserModel {
       walletBalance: walletBalance ?? this.walletBalance,
       earnings: earnings ?? this.earnings,
       favoriteProfessionalIds: favoriteProfessionalIds ?? this.favoriteProfessionalIds,
+      securityQuestions: securityQuestions ?? this.securityQuestions,
     );
   }
 
@@ -110,6 +118,7 @@ class UserModel {
       'walletBalance': walletBalance,
       'earnings': earnings,
       'favoriteProfessionalIds': favoriteProfessionalIds,
+      'securityQuestions': securityQuestions,
     };
   }
 
@@ -136,6 +145,9 @@ class UserModel {
       earnings: ((json['earnings'] ?? 0) as num).toDouble(),
       favoriteProfessionalIds: List<String>.from(
         json['favoriteProfessionalIds'] ?? const <String>[],
+      ),
+      securityQuestions: List<Map<String, dynamic>>.from(
+        json['securityQuestions'] ?? const [],
       ),
     );
   }

@@ -5,6 +5,7 @@ class AppColors {
   static const bg = Color(0xFF0A0A0F);
   static const background = bg;
   static const surface = Color(0xFF12121A);
+  static const surfaceLight = Color(0xFF1E1E2A);
   static const elevated = Color(0xFF1A1A25);
   static const primary = Color(0xFF6C5CE7);
   static const secondary = Color(0xFF00D2FF);
@@ -12,6 +13,8 @@ class AppColors {
   static const accentDark = Color(0xFF4B3FB8);
   static const primaryGradientStart = primary;
   static const primaryGradientEnd = secondary;
+  static const secondaryGradientStart = Color(0xFF00D2FF);
+  static const secondaryGradientEnd = Color(0xFF3A7BD5);
   static const primaryDark = Color(0xFF4E42B5);
   static const cardGradient1Start = primary;
   static const cardGradient1End = secondary;

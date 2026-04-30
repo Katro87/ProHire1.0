@@ -6,6 +6,7 @@ import 'package:mini_fiverr/screens/onboarding/profile_setup_step3.dart';
 import 'package:mini_fiverr/utils/error_handler.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mini_fiverr/models/user_model.dart';
 
 class ProfileSetupStep2 extends StatefulWidget {
   const ProfileSetupStep2({super.key});
@@ -22,7 +23,7 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
   final _bioController = TextEditingController();
   final _rateController = TextEditingController();
   String _experience = '1-3 years';
-  List<String> _skills = [];
+  final List<String> _skills = [];
   final _skillInputController = TextEditingController();
   bool _isAvailable = true;
 
@@ -47,7 +48,7 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
       final role = userProvider.userModel!.role;
 
       Map<String, dynamic> data = {};
-      if (role == 'professional') {
+      if (role == UserRole.professional) {
         if (_skills.isEmpty) {
           Fluttertoast.showToast(msg: "⚠️ Add at least one skill", backgroundColor: AppColors.error);
           return;
@@ -83,7 +84,7 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
     final user = context.watch<UserProvider>().userModel;
     if (user == null) return const Scaffold();
 
-    bool isPro = user.role == 'professional';
+    bool isPro = user.role == UserRole.professional;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -120,7 +121,7 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
           hintText: 'e.g. Senior Flutter Developer',
           border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
         ),
-        validator: (v) => v!.isEmpty ? 'Title is required' : null,
+        validator: (v) => (v == null || v.isEmpty) ? 'Title is required' : null,
       ),
       const SizedBox(height: 20),
       const Text('Skills *', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -145,7 +146,7 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
       const SizedBox(height: 20),
       const Text('Years of Experience *', style: TextStyle(fontWeight: FontWeight.bold)),
       DropdownButtonFormField<String>(
-        initialValue: _experience,
+        value: _experience,
         items: ['0-1', '1-3', '3-5', '5-10', '10+'].map((e) => DropdownMenuItem(value: '$e years', child: Text('$e years'))).toList(),
         onChanged: (v) => setState(() => _experience = v!),
         decoration: const InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),
@@ -159,7 +160,7 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
           border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
         ),
         keyboardType: TextInputType.number,
-        validator: (v) => v!.isEmpty ? 'Rate is required' : null,
+        validator: (v) => (v == null || v.isEmpty) ? 'Rate is required' : null,
       ),
       const SizedBox(height: 20),
       TextFormField(
@@ -170,7 +171,7 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
         ),
         maxLines: 5,
         maxLength: 500,
-        validator: (v) => v!.isEmpty ? 'Bio is required' : null,
+        validator: (v) => (v == null || v.isEmpty) ? 'Bio is required' : null,
       ),
       SwitchListTile(
         title: const Text('Available for hire'),
@@ -189,7 +190,7 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
           labelText: 'Company/Organization Name *',
           border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
         ),
-        validator: (v) => v!.isEmpty ? 'Company name is required' : null,
+        validator: (v) => (v == null || v.isEmpty) ? 'Company name is required' : null,
       ),
       const SizedBox(height: 20),
       TextFormField(
@@ -200,12 +201,12 @@ class _ProfileSetupStep2State extends State<ProfileSetupStep2> {
           border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
         ),
         maxLines: 3,
-        validator: (v) => v!.isEmpty ? 'This field is required' : null,
+        validator: (v) => (v == null || v.isEmpty) ? 'This field is required' : null,
       ),
       const SizedBox(height: 20),
       const Text('Industry *', style: TextStyle(fontWeight: FontWeight.bold)),
       DropdownButtonFormField<String>(
-        initialValue: _industry,
+        value: _industry,
         items: ['Tech', 'Healthcare', 'Finance', 'Education', 'Other'].map((i) => DropdownMenuItem(value: i, child: Text(i))).toList(),
         onChanged: (v) => setState(() => _industry = v!),
         decoration: const InputDecoration(border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12)))),

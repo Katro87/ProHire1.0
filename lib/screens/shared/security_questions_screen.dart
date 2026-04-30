@@ -81,8 +81,8 @@ class _SecurityQuestionsScreenState extends State<SecurityQuestionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => !widget.isMandatory,
+    return PopScope(
+      canPop: !widget.isMandatory,
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(title: const Text('Security Questions')),
@@ -115,8 +115,17 @@ class _SecurityQuestionsScreenState extends State<SecurityQuestionsScreen> {
           Text('Question ${index + 1}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(
+            isExpanded: true, // Takes full width
             value: _selectedQuestions[index],
-            items: AppConstants.securityQuestions.map((String question) => DropdownMenuItem<String>(value: question, child: Text(question))).toList(),
+            items: AppConstants.securityQuestions.map((String question) => DropdownMenuItem<String>(
+              value: question,
+              child: Text(
+                question, 
+                overflow: TextOverflow.ellipsis, // Fixes Horizontal Overflow
+                maxLines: 1,
+                softWrap: false,
+              )
+            )).toList(),
             onChanged: (String? value) {
               if (value == null) return;
               setState(() => _selectedQuestions[index] = value);

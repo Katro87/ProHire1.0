@@ -10,14 +10,25 @@ class ChatListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Messages')),
-      body: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: 4,
-        separatorBuilder: (context, index) => const Divider(height: 1, indent: 80),
-        itemBuilder: (context, index) {
-          return _buildChatTile(context, index);
-        },
+      appBar: AppBar(
+        title: const Text('Messages'),
+        centerTitle: false,
+      ),
+      body: Column(
+        children: [
+          // Optional: Add search bar here if needed
+          const SizedBox(height: 4),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: 4,
+              separatorBuilder: (context, index) => const Divider(height: 1, indent: 80),
+              itemBuilder: (context, index) {
+                return _buildChatTile(context, index);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -32,6 +43,7 @@ class ChatListScreen extends StatelessWidget {
     ];
 
     return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
@@ -44,16 +56,39 @@ class ChatListScreen extends StatelessWidget {
         ),
       ),
       leading: AvatarUtils.buildAvatar(name: names[index], imageUrl: '', radius: 28),
-      title: Text(names[index], style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(msgs[index], maxLines: 1, overflow: TextOverflow.ellipsis),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          const Text('2m ago', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-          const SizedBox(height: 4),
-          if (index == 0) Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle)),
-        ],
+      title: Text(
+        names[index],
+        style: const TextStyle(fontWeight: FontWeight.bold),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        msgs[index],
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: SizedBox(
+        width: 39,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            const Text(
+              '2m ago',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+            ),
+            const SizedBox(height: 4),
+            if (index == 0)
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

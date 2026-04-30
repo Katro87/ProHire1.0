@@ -1,4 +1,5 @@
 enum HireRequestStatus { pending, accepted, declined, active, completed }
+typedef JobStatus = HireRequestStatus;
 
 class HireRequestModel {
   const HireRequestModel({
@@ -89,6 +90,44 @@ class HireRequestModel {
         orElse: () => HireRequestStatus.pending,
       ),
       amountReleased: (map['amountReleased'] ?? false) as bool,
+    );
+  }
+
+  Map<String, dynamic> toMap() => toJson();
+}
+
+class JobModel extends HireRequestModel {
+  JobModel({
+    required super.id,
+    required super.clientId,
+    required super.clientName,
+    required super.professionalId,
+    required super.professionalName,
+    required String description,
+    required super.budget,
+    required DateTime? deadline,
+    required super.status,
+    required super.createdAt,
+    DateTime? updatedAt,
+  }) : super(
+          projectTitle: '',
+          projectDescription: description,
+          deadline: deadline ?? DateTime.now().add(const Duration(days: 7)),
+        );
+
+  factory JobModel.fromMap(Map<String, dynamic> map) {
+    final req = HireRequestModel.fromJson(map);
+    return JobModel(
+      id: req.id,
+      clientId: req.clientId,
+      clientName: req.clientName,
+      professionalId: req.professionalId,
+      professionalName: req.professionalName,
+      description: req.projectDescription,
+      budget: req.budget,
+      deadline: req.deadline,
+      status: req.status,
+      createdAt: req.createdAt,
     );
   }
 }
