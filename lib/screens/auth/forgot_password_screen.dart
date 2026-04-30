@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:mini_fiverr/providers/auth_provider.dart';
 import 'package:mini_fiverr/providers/data_provider.dart';
 import 'package:mini_fiverr/models/security_question_model.dart';
+import 'package:mini_fiverr/screens/auth/create_new_password_screen.dart';
 import 'package:mini_fiverr/utils/theme.dart';
 import 'package:mini_fiverr/widgets/toast_notification.dart';
 
@@ -38,10 +39,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     setState(() => _isSearching = true);
 
-    // Find the user by email in the data provider
     final data = context.read<DataProvider>();
-    
-    // In a real app, this would be an API call. Here we check the local DataProvider.
     final questions = data.securityQuestionsForEmail(email);
 
     setState(() => _isSearching = false);
@@ -111,6 +109,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           );
                       if (ok) {
                         ToastService.showSuccess('Identity verified!');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CreateNewPasswordScreen(email: _email.text.trim()),
+                          ),
+                        );
                       } else {
                         ToastService.showError('Verification failed', subtitle: 'The answers do not match our records.');
                       }
