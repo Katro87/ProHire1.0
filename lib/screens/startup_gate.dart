@@ -22,10 +22,21 @@ class _StartupGateState extends State<StartupGate> {
   }
 
   Future<void> _load() async {
+    // Ensure the splash screen is visible for at least 2.5 seconds
+    final startTime = DateTime.now();
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    _seenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
+
+    final elapsed = DateTime.now().difference(startTime).inMilliseconds;
+    final remaining = 2500 - elapsed;
+
+    if (remaining > 0) {
+      await Future.delayed(Duration(milliseconds: remaining));
+    }
+
     if (!mounted) return;
     setState(() {
-      _seenOnboarding = prefs.getBool('has_seen_onboarding') ?? false;
       _loading = false;
     });
   }
@@ -40,7 +51,8 @@ class _StartupGateState extends State<StartupGate> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const SplashScreen(hold: true);
+      // Show the splash screen during the initial load
+      return const SplashScreen();
     }
 
     if (!_seenOnboarding) {
