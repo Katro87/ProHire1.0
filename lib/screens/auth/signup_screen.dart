@@ -19,6 +19,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
   UserRole? _role;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -46,7 +47,17 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 12),
                 TextField(controller: _email, decoration: const InputDecoration(labelText: 'Email')),
                 const SizedBox(height: 12),
-                TextField(controller: _password, obscureText: true, decoration: const InputDecoration(labelText: 'Password')),
+                TextField(
+                  controller: _password,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 const Text('Choose your role', style: TextStyle(color: AppColors.textSecondary)),
                 const SizedBox(height: 12),
